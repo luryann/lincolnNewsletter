@@ -78,7 +78,7 @@ a {
       position: absolute;
       width: 70px;
       height: 2px;
-      background: #ff7a7f;
+      background: #ff7b00;
       left: 50%;
       transform: translateX(-50%);
       bottom: -10px; }
@@ -217,7 +217,7 @@ ul {
       .header-top .header_social li:last-child {
         margin-right: 0px; }
       .header-top .header_social li:hover a {
-        color: #ff7a7f; }
+        color: #ff7b00; }
       @media (max-width: 991px) {
         .header-top .header_social li {
           margin-right: 7px; } }
