@@ -1,4 +1,3 @@
 # lincolnNewsletter
-newsletter page 
-ijakfjaskl;dfjaksdf
+Code for the Lincoln HS Railsplitter
 
