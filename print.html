@@ -59,7 +59,7 @@ function esc(s) {
 var params  = new URLSearchParams(window.location.search);
 var issueId = params.get('issue') || '';
 
-fetch('content.json').then(function(r){
+fetch(RAW_BASE + 'content.json').then(function(r){
   if (!r.ok) throw new Error('content.json returned ' + r.status);
   return r.json();
 }).then(function(data) {
