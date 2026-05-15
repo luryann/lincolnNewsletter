@@ -7,7 +7,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Georgia,'Times New Roman',serif;background:#fff;color:#111;font-size:10pt;padding:20px;}
 .no-print-btn{position:fixed;top:16px;right:16px;background:#C85500;color:#fff;border:none;padding:10px 20px;font-size:14px;border-radius:5px;cursor:pointer;font-family:sans-serif;}
-@media print{.no-print-btn{display:none;}}
+@media print{.no-print-btn{display:none;}body{padding:0;}}
 
 /* Masthead */
 .mast{text-align:center;border-top:3px solid #111;border-bottom:3px solid #111;padding:10px 0;margin-bottom:16px;}
@@ -59,7 +59,10 @@ function esc(s) {
 var params  = new URLSearchParams(window.location.search);
 var issueId = params.get('issue') || '';
 
-fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+fetch('content.json').then(function(r){
+  if (!r.ok) throw new Error('content.json returned ' + r.status);
+  return r.json();
+}).then(function(data) {
   var issues   = data.issues || [];
   var articles = data.articles || [];
   var sections = data.sections || [];
@@ -71,6 +74,10 @@ fetch('content.json').then(function(r){ return r.json(); }).then(function(data) 
   }
 
   var issueArticles = articles.filter(function(a){ return a.issueId === issueId && a.published; });
+  if (!issueArticles.length) {
+    document.getElementById('root').innerHTML = '<p class="error">No published articles in this issue.</p>';
+    return;
+  }
   var cover = issueArticles.find(function(a){ return a.id === issue.coverArticle; }) || issueArticles[0];
   var rest  = issueArticles.filter(function(a){ return !cover || a.id !== cover.id; });
 
@@ -90,6 +97,7 @@ fetch('content.json').then(function(r){ return r.json(); }).then(function(data) 
   if (cover) {
     var bodyHTML = '';
     if (cover.body) {
+      // cover.body is trusted HTML authored via the editor (GitHub-authenticated)
       bodyHTML = '<div class="cover__body">' + cover.body + '</div>';
     }
     coverHTML =
