@@ -28,13 +28,8 @@
 
   <!-- Navigation -->
   <nav class="nav">
-    <div class="nav__inner">
+    <div class="nav__inner" id="mainNav">
       <a href="index.html" class="nav__item">Home</a>
-      <a href="section.html?s=news" class="nav__item">Lincoln News</a>
-      <a href="section.html?s=features" class="nav__item">Features</a>
-      <a href="section.html?s=opinion" class="nav__item">Opinion</a>
-      <a href="section.html?s=sports" class="nav__item nav__item--active">Sports</a>
-      <a href="section.html?s=reviews" class="nav__item">Reviews</a>
     </div>
   </nav>
 
@@ -96,37 +91,8 @@
 
   <!-- Related Articles -->
   <div class="related">
-    <div class="related__title">More from Sports</div>
-    <div class="related__grid">
-
-      <article class="rel-card">
-        <a href="article.html?id=dodgers" class="rel-card__img">
-          <div class="img-ph img-ph--sports" style="aspect-ratio:3/2;"></div>
-        </a>
-        <span class="label">Sports</span>
-        <h3 class="rel-card__hed"><a href="article.html?id=dodgers">Baseball Is Back and the Dodgers Are At the Top of Their Game</a></h3>
-        <p class="rel-card__meta">By <strong>Aaron Ortiz</strong> &nbsp;&middot;&nbsp; April 2026</p>
-      </article>
-
-      <article class="rel-card">
-        <a href="article.html?id=baseball" class="rel-card__img">
-          <div class="img-ph img-ph--sports" style="aspect-ratio:3/2;"></div>
-        </a>
-        <span class="label">Sports</span>
-        <h3 class="rel-card__hed"><a href="article.html?id=baseball">Tiger Baseball Comes Roaring Back</a></h3>
-        <p class="rel-card__meta">By <strong>The Railsplitter</strong> &nbsp;&middot;&nbsp; April 2026</p>
-      </article>
-
-      <article class="rel-card">
-        <a href="article.html?id=volleyball" class="rel-card__img">
-          <div class="img-ph img-ph--sports" style="aspect-ratio:3/2;"></div>
-        </a>
-        <span class="label">Sports</span>
-        <h3 class="rel-card__hed"><a href="article.html?id=volleyball">Volleyball Recap: Lincoln Gets the Win</a></h3>
-        <p class="rel-card__meta">By <strong>The Railsplitter</strong> &nbsp;&middot;&nbsp; April 2026</p>
-      </article>
-
-    </div>
+    <div class="related__title" id="relatedTitle"></div>
+    <div class="related__grid" id="relatedGrid"></div>
   </div>
 
   <!-- Footer -->
@@ -161,13 +127,7 @@
       <div class="footer__divider"></div>
       <div>
         <div class="footer__col-title">Sections</div>
-        <div class="footer__links">
-          <a href="section.html?s=news">Lincoln News</a>
-          <a href="section.html?s=features">Features</a>
-          <a href="section.html?s=opinion">Opinion</a>
-          <a href="section.html?s=sports">Sports</a>
-          <a href="section.html?s=reviews">Reviews</a>
-        </div>
+        <div class="footer__links" id="footerNav"></div>
       </div>
     </div>
     <div class="footer__bottom">
@@ -178,54 +138,91 @@
 
   <!-- Dynamic title from URL param -->
   <script>
-    var articleData = {
-      bracket:    { title: "One Billion Reasons to Fill Out a Bracket", author: "Ryan Lu", section: "Sports", sectionSlug: "sports" },
-      heatwave:   { title: "Southern California Heat Wave: Record-Breaking March Temperatures", author: "Qimei Li", section: "Features", sectionSlug: "features" },
-      xbox:       { title: 'Xbox To Be \u201cSunsetted\u201d After 24 Years', author: "Yew Yu", section: "Features", sectionSlug: "features" },
-      videogames: { title: "Are Video Games Losing Their Allure?", author: "Rebecca Medrano", section: "Opinion", sectionSlug: "opinion" },
-      educare:    { title: "Educare: Not Just an Afterschool Program", author: "Megan Nim", section: "Lincoln News", sectionSlug: "news" },
-      glamclub:   { title: "More Than Makeup: Inside Lincoln\u2019s Glam Club", author: "Aracely Rodriguez", section: "Lincoln News", sectionSlug: "news" },
-      piday:      { title: "Pi Day \u2014 A Never-Ending Joy to the Math-Minded", author: "Jada Guevara", section: "Lincoln News", sectionSlug: "news" },
-      petpeeves:  { title: "Pet Peeves At School", author: "Samantha Ortiz", section: "Features", sectionSlug: "features" },
-      bts:        { title: "BTS\u2019 ARIRANG: Some Hits but Mostly Misses", author: "Miranda Garcia", section: "Features", sectionSlug: "features" },
-      tigercat:   { title: "Have You Seen the Lincoln Tiger Cat?", author: "Sophia Miranda", section: "Features", sectionSlug: "features" },
-      dodgers:    { title: "Baseball Is Back and the Dodgers Are At the Top of Their Game", author: "Aaron Ortiz", section: "Sports", sectionSlug: "sports" },
-      baseball:   { title: "Tiger Baseball Comes Roaring Back", author: "The Railsplitter", section: "Sports", sectionSlug: "sports" },
-      wbc:        { title: "World Baseball Classic: Team USA Loses 3-2 in a Dramatic Final", author: "Ruby Campos", section: "Sports", sectionSlug: "sports" },
-      volleyball: { title: "Volleyball Recap: Lincoln Gets the Win", author: "The Railsplitter", section: "Sports", sectionSlug: "sports" },
-      chavez:     { title: "US Civil Rights Leader Cesar Chavez Accused of Sexual Abuse", author: "Samantha Martinez & Alma Santiago", section: "Opinion", sectionSlug: "opinion" },
-      neverfall:  { title: "Never Fall Down by Patricia McCormick", author: "Elisas Munoz", section: "Reviews", sectionSlug: "reviews" },
-      mazerunner: { title: "The Maze Runner by James Dashner", author: "Daniel Weng", section: "Reviews", sectionSlug: "reviews" },
-      elsatake:   { title: "Elsa\u2019s Take 5 and Watch: Three Wildly Absurd Films", author: "Elsa Daily", section: "Reviews", sectionSlug: "reviews" }
-    };
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     var params = new URLSearchParams(window.location.search);
-    var id = params.get('id');
-    if (id && articleData[id] && id !== 'bracket') {
-      var a = articleData[id];
-      document.title = a.title + ' \u2014 The Railsplitter';
+    var id     = params.get('id') || '';
+
+    fetch('content.json').then(function(r) { return r.json(); }).then(function(data) {
+      var sections = data.sections;
+      var articles = data.articles;
+      var a = articles.find(function(x) { return x.id === id; });
+
+      // Nav
+      var navEl = document.getElementById('mainNav');
+      sections.forEach(function(sec) {
+        var link = document.createElement('a');
+        link.href = 'section.html?s=' + sec.slug;
+        link.className = 'nav__item' + (a && a.section === sec.slug ? ' nav__item--active' : '');
+        link.textContent = sec.title;
+        navEl.appendChild(link);
+      });
+
+      // Footer nav
+      var footerNav = document.getElementById('footerNav');
+      sections.forEach(function(sec) {
+        var link = document.createElement('a');
+        link.href = 'section.html?s=' + sec.slug;
+        link.textContent = sec.title;
+        footerNav.appendChild(link);
+      });
+
+      if (!a) return;
+
+      var secObj = sections.find(function(s) { return s.slug === a.section; }) || {};
+
+      document.title = a.title + ' — The Railsplitter';
+
+      // Header fields
       var hedEl = document.querySelector('.art-header__hed');
       if (hedEl) hedEl.textContent = a.title;
       var dekEl = document.querySelector('.art-header__dek');
-      if (dekEl) dekEl.textContent = 'A Railsplitter report by ' + a.author + '.';
+      if (dekEl) dekEl.textContent = a.dek;
       var authorEl = document.querySelector('.art-header__author');
       if (authorEl) authorEl.textContent = 'By ' + a.author;
-      var labelEls = document.querySelectorAll('.art-header__label');
-      labelEls.forEach(function(el) { el.textContent = a.section; });
-      // Update breadcrumb section link
+      var issueEl = document.querySelector('.art-header__issue');
+      if (issueEl) issueEl.textContent = a.issue;
+      document.querySelectorAll('.art-header__label').forEach(function(el) { el.textContent = secObj.title || ''; });
+
+      // Breadcrumb
       var crumbLinks = document.querySelectorAll('.art-header__crumb a');
       if (crumbLinks[1]) {
-        crumbLinks[1].textContent = a.section;
-        crumbLinks[1].href = 'section.html?s=' + a.sectionSlug;
+        crumbLinks[1].textContent = secObj.title || '';
+        crumbLinks[1].href = 'section.html?s=' + a.section;
       }
-      // Update nav active state
-      document.querySelectorAll('.nav__item').forEach(function(ni) { ni.classList.remove('nav__item--active'); });
-      document.querySelectorAll('.nav__item').forEach(function(ni) {
-        if (ni.textContent.trim().toLowerCase().includes(a.section.toLowerCase().split(' ')[0])) {
-          ni.classList.add('nav__item--active');
-        }
-      });
-    }
+
+      // Lead image placeholder
+      var leadImg = document.querySelector('.art-lead-img .img-ph');
+      if (leadImg) {
+        leadImg.className = 'img-ph ' + a.ph;
+        var credit = leadImg.querySelector('.img-ph__credit');
+        if (credit && a.credit) credit.textContent = a.credit;
+      }
+
+      // Body — only inject if we have content
+      if (a.body) {
+        var bodyEl = document.querySelector('.art-body');
+        if (bodyEl) bodyEl.innerHTML = a.body;
+      }
+
+      // Related articles (same section, excluding current)
+      var related = articles.filter(function(x) { return x.section === a.section && x.id !== a.id && x.published; }).slice(0, 3);
+      var relTitle = document.getElementById('relatedTitle');
+      var relGrid  = document.getElementById('relatedGrid');
+      if (relTitle) relTitle.textContent = related.length ? 'More from ' + (secObj.title || '') : '';
+      if (relGrid) relGrid.innerHTML = related.map(function(r) {
+        return '<article class="rel-card">' +
+          '<a href="article.html?id=' + esc(r.id) + '" class="rel-card__img">' +
+            '<div class="img-ph ' + esc(r.ph) + '" style="aspect-ratio:3/2;"></div>' +
+          '</a>' +
+          '<span class="label">' + esc(secObj.title || '') + '</span>' +
+          '<h3 class="rel-card__hed"><a href="article.html?id=' + esc(r.id) + '">' + esc(r.title) + '</a></h3>' +
+          '<p class="rel-card__meta">By <strong>' + esc(r.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(r.issue) + '</p>' +
+        '</article>';
+      }).join('');
+    });
   </script>
 
 </body>
