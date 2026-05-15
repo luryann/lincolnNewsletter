@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Print — The Railsplitter</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Georgia,'Times New Roman',serif;background:#fff;color:#111;font-size:10pt;padding:20px;}
+.no-print-btn{position:fixed;top:16px;right:16px;background:#C85500;color:#fff;border:none;padding:10px 20px;font-size:14px;border-radius:5px;cursor:pointer;font-family:sans-serif;}
+@media print{.no-print-btn{display:none;}}
+
+/* Masthead */
+.mast{text-align:center;border-top:3px solid #111;border-bottom:3px solid #111;padding:10px 0;margin-bottom:16px;}
+.mast__name{font-size:36pt;font-weight:700;letter-spacing:-.02em;line-height:1;}
+.mast__meta{font-size:9pt;color:#555;margin-top:4px;letter-spacing:.05em;text-transform:uppercase;}
+.mast-rule{border:none;border-top:1px solid #111;margin:6px 0;}
+
+/* Cover story */
+.cover{border-bottom:2px solid #111;padding-bottom:16px;margin-bottom:16px;}
+.cover__label{font-size:8pt;text-transform:uppercase;letter-spacing:.1em;color:#C85500;font-family:sans-serif;margin-bottom:4px;}
+.cover__hed{font-size:28pt;font-weight:700;line-height:1.05;margin-bottom:8px;}
+.cover__dek{font-size:12pt;color:#333;margin-bottom:8px;line-height:1.4;}
+.cover__byline{font-size:9pt;color:#555;font-family:sans-serif;}
+.cover__img{width:100%;max-height:260px;object-fit:cover;margin:10px 0;}
+.cover__img-ph{width:100%;height:200px;background:#ddd;margin:10px 0;}
+.cover__body{margin-top:10px;font-size:10pt;line-height:1.65;column-count:3;column-gap:20px;}
+.cover__body p{margin-bottom:8pt;}
+.cover__body h3{font-size:11pt;margin:10pt 0 4pt;}
+.cover__body blockquote{border-left:3px solid #C85500;padding-left:8px;margin:8pt 0;font-style:italic;}
+
+/* Article grid */
+.grid-heading{font-size:9pt;text-transform:uppercase;letter-spacing:.1em;color:#888;font-family:sans-serif;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:4px;}
+.grid{column-count:3;column-gap:20px;}
+.art-card{break-inside:avoid;margin-bottom:14pt;padding-bottom:14pt;border-bottom:1px solid #ddd;}
+.art-card__section{font-size:7.5pt;text-transform:uppercase;letter-spacing:.1em;color:#C85500;font-family:sans-serif;}
+.art-card__hed{font-size:13pt;font-weight:700;line-height:1.15;margin:3pt 0 4pt;}
+.art-card__dek{font-size:9pt;color:#444;line-height:1.4;margin-bottom:4pt;}
+.art-card__byline{font-size:8pt;color:#888;font-family:sans-serif;}
+.art-card__body{margin-top:6pt;font-size:9pt;line-height:1.55;}
+.art-card__body p{margin-bottom:5pt;}
+.art-card__img{width:100%;height:80px;object-fit:cover;margin-bottom:6pt;}
+.art-card__img-ph{width:100%;height:60px;background:#e8e5e0;margin-bottom:6pt;}
+.art-card__stub{font-size:8pt;color:#aaa;font-style:italic;margin-top:4pt;}
+.error{padding:40px;text-align:center;font-family:sans-serif;color:#888;}
+</style>
+</head>
+<body>
+
+<button class="no-print-btn" onclick="window.print()">Print / Save PDF</button>
+<div id="root"><p class="error">Loading…</p></div>
+
+<script>
+var RAW_BASE = 'https://raw.githubusercontent.com/luryann/lincolnNewsletter/main/';
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+var params  = new URLSearchParams(window.location.search);
+var issueId = params.get('issue') || '';
+
+fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+  var issues   = data.issues || [];
+  var articles = data.articles || [];
+  var sections = data.sections || [];
+
+  var issue = issues.find(function(i){ return i.id === issueId; });
+  if (!issue) {
+    document.getElementById('root').innerHTML = '<p class="error">Issue not found: ' + esc(issueId) + '</p>';
+    return;
+  }
+
+  var issueArticles = articles.filter(function(a){ return a.issueId === issueId && a.published; });
+  var cover = issueArticles.find(function(a){ return a.id === issue.coverArticle; }) || issueArticles[0];
+  var rest  = issueArticles.filter(function(a){ return !cover || a.id !== cover.id; });
+
+  function sectionTitle(slug) {
+    var s = sections.find(function(x){ return x.slug === slug; });
+    return s ? s.title : slug;
+  }
+
+  function imgOrPh(article, isCover) {
+    if (article.photo) {
+      return '<img class="' + (isCover ? 'cover__img' : 'art-card__img') + '" src="' + esc(RAW_BASE + article.photo) + '" alt="">';
+    }
+    return '<div class="' + (isCover ? 'cover__img-ph' : 'art-card__img-ph') + '"></div>';
+  }
+
+  var coverHTML = '';
+  if (cover) {
+    var bodyHTML = '';
+    if (cover.body) {
+      bodyHTML = '<div class="cover__body">' + cover.body + '</div>';
+    }
+    coverHTML =
+      '<div class="cover">' +
+        '<div class="cover__label">' + esc(sectionTitle(cover.section)) + ' — Cover Story</div>' +
+        imgOrPh(cover, true) +
+        '<h1 class="cover__hed">' + esc(cover.title) + '</h1>' +
+        '<p class="cover__dek">' + esc(cover.dek) + '</p>' +
+        '<p class="cover__byline">By ' + esc(cover.author) + '</p>' +
+        bodyHTML +
+      '</div>';
+  }
+
+  var cardsHTML = rest.map(function(a) {
+    var bodySnippet = '';
+    if (a.body) {
+      var tmp = document.createElement('div');
+      tmp.innerHTML = a.body;
+      var text = tmp.textContent || '';
+      bodySnippet = '<div class="art-card__body"><p>' + esc(text.slice(0, 300)) + (text.length > 300 ? '…' : '') + '</p></div>';
+    } else {
+      bodySnippet = '<p class="art-card__stub">Full article not yet written.</p>';
+    }
+    return '<div class="art-card">' +
+      '<div class="art-card__section">' + esc(sectionTitle(a.section)) + '</div>' +
+      imgOrPh(a, false) +
+      '<h2 class="art-card__hed">' + esc(a.title) + '</h2>' +
+      '<p class="art-card__dek">' + esc(a.dek) + '</p>' +
+      '<p class="art-card__byline">By ' + esc(a.author) + '</p>' +
+      bodySnippet +
+    '</div>';
+  }).join('');
+
+  document.title = issue.title + ', ' + issue.date + ' — The Railsplitter';
+  document.getElementById('root').innerHTML =
+    '<div class="mast">' +
+      '<div class="mast__name">The Railsplitter</div>' +
+      '<hr class="mast-rule">' +
+      '<div class="mast__meta">Lincoln High School &nbsp;·&nbsp; Los Angeles, CA &nbsp;·&nbsp; ' + esc(issue.title) + ', ' + esc(issue.date) + '</div>' +
+    '</div>' +
+    coverHTML +
+    (rest.length ? '<div class="grid-heading">More in this issue</div><div class="grid">' + cardsHTML + '</div>' : '');
+
+}).catch(function(err) {
+  document.getElementById('root').innerHTML = '<p class="error">Failed to load content: ' + esc(err.message) + '</p>';
+});
+</script>
+</body>
+</html>
