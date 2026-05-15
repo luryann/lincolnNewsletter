@@ -384,7 +384,7 @@ App.views.settings = {
         App.state.token = token;
         statusEl.innerHTML = '<span style="color:#166534;">✓ Connected as @' + App.esc(user.login) + '</span>';
         document.getElementById('sidebarFooter').innerHTML = 'Signed in as <strong>@' + App.esc(user.login) + '</strong>';
-        App.github.getContent().then(function() { App.router.navigate('articles'); });
+        App.github.getContent().then(function() { App.router.navigate('articles'); }).catch(App.handleApiError);
       }).catch(function() {
         statusEl.innerHTML = '<span style="color:#b91c1c;">✗ Token invalid or no repo access.</span>';
       });
@@ -490,23 +490,25 @@ var Sanitizer = {
   },
 
   cleanNode: function(node) {
-    var children = Array.from(node.childNodes);
-    children.forEach(function(child) {
-      if (child.nodeType === 3) return;
-      if (child.nodeType !== 1) { child.remove(); return; }
+    var i = 0;
+    while (i < node.childNodes.length) {
+      var child = node.childNodes[i];
+      if (child.nodeType === 3) { i++; continue; }
+      if (child.nodeType !== 1) { node.removeChild(child); continue; }
       var tag = child.tagName.toUpperCase();
       if (!Sanitizer.ALLOWED_TAGS.includes(tag)) {
         var frag = document.createDocumentFragment();
-        Array.from(child.childNodes).forEach(function(c) { frag.appendChild(c.cloneNode(true)); });
+        while (child.firstChild) frag.appendChild(child.firstChild);
         node.replaceChild(frag, child);
-        Sanitizer.cleanNode(node);
-        return;
+        // Don't increment i — re-examine same position after unwrap
+        continue;
       }
       Array.from(child.attributes).forEach(function(attr) {
         if (!(tag === 'A' && attr.name === 'href')) child.removeAttribute(attr.name);
       });
       Sanitizer.cleanNode(child);
-    });
+      i++;
+    }
   }
 };
 
@@ -558,7 +560,7 @@ App.views.articleEditor = {
                 '<div class="rt-btn-sep"></div>' +
                 '<button class="rt-btn" id="pasteDocBtn" style="color:#C85500;font-weight:600;">Paste from Docs</button>' +
               '</div>' +
-              '<div class="richtext-body" id="richBody" contenteditable="true">' + (a.body || '') + '</div>' +
+              '<div class="richtext-body" id="richBody" contenteditable="true">' + Sanitizer.sanitizeHTML(a.body || '') + '</div>' +
             '</div>' +
           '</div>' +
         '</div></div>' +
@@ -670,6 +672,7 @@ App.views.articleEditor = {
         App.showSuccess(published ? 'Published!' : 'Draft saved.');
         document.getElementById('publishBtn').textContent = published ? 'Update Published' : 'Publish →';
         btn.disabled = false;
+        btn.textContent = published ? 'Update Published' : 'Save Draft';
       }).catch(function(err) {
         btn.disabled = false;
         btn.textContent = published ? 'Publish →' : 'Save Draft';
@@ -752,7 +755,7 @@ App.views.homepage = {
       '</div>' +
       '<div class="card"><div class="card-title">Section Grids</div>' + secGridsHTML + '</div>';
 
-    document.getElementById('contentArea').addEventListener('click', function(e) {
+    document.getElementById('contentArea').onclick = function(e) {
       var btn = e.target.closest('.hp-slot-change');
       if (!btn) return;
 
@@ -776,7 +779,7 @@ App.views.homepage = {
           App.showSuccess('Homepage updated.');
         }).catch(App.handleApiError);
       });
-    });
+    };
   },
 
   openPicker: function(onSelect) {
