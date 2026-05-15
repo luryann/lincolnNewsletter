@@ -164,6 +164,7 @@ body {
 .img-ph--opinion  { background: linear-gradient(160deg, #E4DCDC 0%, #D0C4C4 100%); }
 .img-ph--reviews  { background: linear-gradient(160deg, #DCDCE8 0%, #C8C8D8 100%); }
 .img-ph--news     { background: linear-gradient(160deg, #E4E0D8 0%, #CEC8BC 100%); }
+.img-ph--default { background: linear-gradient(135deg, #ccc 0%, #b0b0b0 100%); }
 .img-ph__credit {
   position: absolute;
   bottom: 7px;
