@@ -164,7 +164,7 @@
       // Section grids
       var gridsHTML = sections.map(function(sec) {
         var ids = hp.sections[sec.slug] || [];
-        var secArticles = ids.map(function(id) { return articleById(articles, id); }).filter(Boolean);
+        var secArticles = ids.map(function(id) { return articleById(articles, id); }).filter(function(a) { return a && a.published; });
         if (!secArticles.length) return '';
         return '<section>' +
           '<div class="sec-head">' +
