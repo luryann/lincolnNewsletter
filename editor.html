@@ -726,9 +726,9 @@ App.views.articleEditor = {
           var dataUrl = ev.target.result;
           var base64  = dataUrl.split(',')[1];
           App.github.uploadFile(path, base64, 'Photo: upload for ' + a.id).then(function() {
-            a.photo = path;
             return App.github.saveContent('Photo: set photo for ' + a.title);
           }).then(function() {
+            a.photo = path;
             App.showSuccess('Photo uploaded.');
             App.views.articleEditor.render();
           }).catch(function(err) {
@@ -736,6 +736,11 @@ App.views.articleEditor = {
             uploadBtn.textContent = 'Upload Photo';
             App.handleApiError(err);
           });
+        };
+        reader.onerror = function() {
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = 'Upload Photo';
+          App.showError('Could not read the selected file.');
         };
         reader.readAsDataURL(file);
       });
