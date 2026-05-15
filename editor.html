@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor — The Railsplitter</title>
+<style>
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0ede8;color:#1a1916;font-size:14px;height:100vh;overflow:hidden;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font-family:inherit;font-size:13px;}
+
+/* ── Layout ── */
+.shell{display:flex;height:100vh;}
+.sidebar{width:210px;background:#1a1916;display:flex;flex-direction:column;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid #ddd;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:16px;font-weight:600;}
+.topbar-actions{display:flex;gap:8px;align-items:center;}
+.content-area{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── Sidebar ── */
+.sidebar-brand{padding:18px 16px 14px;border-bottom:1px solid #2a2a2a;}
+.sidebar-brand-name{font-size:15px;font-weight:700;color:#fff;}
+.sidebar-brand-sub{font-size:11px;color:#888;margin-top:2px;}
+.sidebar-nav{flex:1;padding:10px 0;}
+.nav-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#555;padding:14px 16px 4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;color:#aaa;font-size:13px;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:#2a2a2a;color:#fff;}
+.nav-item.active{background:#C85500;color:#fff;}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;}
+.sidebar-footer{padding:12px 16px;border-top:1px solid #2a2a2a;font-size:11px;color:#555;}
+.sidebar-footer strong{color:#888;}
+
+/* ── Buttons ── */
+.btn{padding:7px 14px;border-radius:5px;font-size:13px;font-weight:500;border:none;}
+.btn-primary{background:#C85500;color:#fff;}
+.btn-secondary{background:#f0ede8;color:#444;border:1px solid #ddd;}
+.btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:8px;border:1px solid #e8e5e0;padding:20px;margin-bottom:16px;}
+.card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:16px;}
+
+/* ── Form fields ── */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;border:1px solid #ddd;border-radius:5px;padding:8px 10px;font-size:13px;font-family:inherit;color:#1a1916;background:#fafaf7;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#C85500;background:#fff;}
+.field textarea{resize:vertical;min-height:70px;}
+
+/* ── Notice / status ── */
+.notice{padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:16px;}
+.notice-error{background:#fee2e2;border:1px solid #fca5a5;color:#b91c1c;}
+.notice-success{background:#dcfce7;border:1px solid #86efac;color:#166534;}
+.notice-warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
+.badge-pub{background:#dcfce7;color:#166534;}
+.badge-draft{background:#fff7ed;color:#9a3412;}
+
+/* ── Settings view ── */
+.settings-wrap{max-width:520px;}
+
+/* ── Modal ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;}
+.modal{background:#fff;border-radius:10px;padding:24px;width:480px;max-width:90vw;}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:12px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+/* ── Spinner ── */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#C85500;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Article editor ── */
+.editor-grid{display:grid;grid-template-columns:1fr 280px;gap:20px;}
+.richtext-wrap{border:1px solid #ddd;border-radius:5px;overflow:hidden;background:#fafaf7;}
+.richtext-toolbar{background:#f5f2ed;border-bottom:1px solid #ddd;padding:5px 8px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.rt-btn{padding:3px 8px;border:1px solid transparent;border-radius:3px;font-size:12px;background:none;color:#444;}
+.rt-btn:hover{background:#e8e5e0;border-color:#ccc;}
+.rt-btn-sep{width:1px;background:#ddd;margin:0 4px;align-self:stretch;}
+.richtext-body{min-height:320px;padding:14px;font-size:15px;line-height:1.75;outline:none;}
+.richtext-body:empty::before{content:'Start writing, or paste from Google Docs\2026';color:#aaa;pointer-events:none;}
+.ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+.ph-swatch{border:2px solid transparent;border-radius:5px;padding:5px;font-size:11px;text-align:center;cursor:pointer;background:none;}
+.ph-swatch.selected{border-color:#C85500;}
+.ph-preview{height:24px;border-radius:3px;margin-bottom:4px;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:none;}
+.status-pub{background:#dcfce7;color:#166534;}
+.status-draft{background:#fff7ed;color:#9a3412;}
+
+/* ── Homepage editor ── */
+.hp-slot{border:2px dashed #e0ddd8;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;background:#fafaf7;margin-bottom:8px;}
+.hp-slot.hero-slot{border-color:#C85500;background:#fff8f4;}
+.hp-slot-ph{width:64px;height:42px;border-radius:4px;flex-shrink:0;}
+.hp-slot-info{flex:1;}
+.hp-slot-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#C85500;margin-bottom:2px;}
+.hp-slot-hed{font-size:13px;font-weight:600;line-height:1.3;}
+.hp-slot-meta{font-size:11px;color:#888;margin-top:2px;}
+.hp-slot-change{font-size:12px;color:#C85500;cursor:pointer;text-decoration:underline;white-space:nowrap;background:none;border:none;padding:0;}
+.sec-grid-row{margin-bottom:20px;}
+.sec-grid-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sec-grid-row-title{font-size:13px;font-weight:600;}
+.slot-list{display:flex;flex-direction:column;gap:6px;}
+.picker-list{max-height:320px;overflow-y:auto;border:1px solid #e8e5e0;border-radius:6px;margin-top:8px;}
+.picker-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #f0ede8;cursor:pointer;}
+.picker-item:last-child{border-bottom:none;}
+.picker-item:hover{background:#fff8f4;}
+.picker-item-hed{font-size:13px;font-weight:500;}
+.picker-item-meta{font-size:11px;color:#888;margin-top:2px;}
+
+/* ── Section manager ── */
+.sec-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0ede8;}
+.sec-row:last-child{border-bottom:none;}
+.sec-drag{color:#ccc;cursor:grab;font-size:18px;line-height:1;}
+.sec-info{flex:1;}
+.sec-title-input{border:1px solid transparent;border-radius:4px;padding:4px 6px;font-size:13px;font-weight:500;font-family:inherit;background:none;width:160px;}
+.sec-title-input:focus{border-color:#C85500;background:#fff;outline:none;}
+.sec-slug{font-size:11px;color:#aaa;margin-top:2px;}
+.ph-dot{width:14px;height:14px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.color-picker-row{display:flex;gap:6px;margin-top:6px;}
+.color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.color-dot.selected{border-color:#1a1916;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">The Railsplitter</div>
+      <div class="sidebar-brand-sub">Editor</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Content</div>
+      <button class="nav-item" data-view="articles">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2z"/></svg>
+        All Articles
+      </button>
+      <button class="nav-item" data-view="homepage">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h3a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h3a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+        Homepage
+      </button>
+      <button class="nav-item" data-view="sections">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+        Sections
+      </button>
+      <div class="nav-label">System</div>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-footer" id="sidebarFooter">Not signed in</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Loading&hellip;</div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+    <div class="content-area" id="contentArea">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── App namespace ──────────────────────────────────────────────────────────
+var App = {
+  REPO_OWNER: 'luryann',
+  REPO_NAME:  'lincolnNewsletter',
+  CONTENT_PATH: 'content.json',
+
+  state: {
+    token:   null,
+    sha:     null,
+    content: null,
+    view:    'articles',
+    articleId: null
+  },
+
+  // ── GitHub API ────────────────────────────────────────────────────────
+  github: {
+    apiBase: 'https://api.github.com',
+
+    headers: function() {
+      return {
+        'Authorization': 'token ' + App.state.token,
+        'Accept':        'application/vnd.github.v3+json',
+        'Content-Type':  'application/json'
+      };
+    },
+
+    getContent: function() {
+      var url = App.github.apiBase + '/repos/' + App.REPO_OWNER + '/' + App.REPO_NAME +
+                '/contents/' + App.CONTENT_PATH;
+      return fetch(url, { headers: App.github.headers() }).then(function(r) {
+        if (r.status === 401) throw new Error('AUTH_ERROR');
+        if (!r.ok) throw new Error('HTTP_' + r.status);
+        return r.json();
+      }).then(function(data) {
+        App.state.sha = data.sha;
+        App.state.content = JSON.parse(atob(data.content.replace(/\n/g, '')));
+        return App.state.content;
+      });
+    },
+
+    saveContent: function(commitMessage) {
+      var url = App.github.apiBase + '/repos/' + App.REPO_OWNER + '/' + App.REPO_NAME +
+                '/contents/' + App.CONTENT_PATH;
+      var body = JSON.stringify({
+        message: commitMessage || 'Update content via Railsplitter Editor',
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(App.state.content, null, 2)))),
+        sha:     App.state.sha
+      });
+      return fetch(url, { method: 'PUT', headers: App.github.headers(), body: body }).then(function(r) {
+        if (r.status === 401) throw new Error('AUTH_ERROR');
+        if (r.status === 409) throw new Error('SHA_CONFLICT');
+        if (!r.ok) throw new Error('HTTP_' + r.status);
+        return r.json();
+      }).then(function(data) {
+        App.state.sha = data.content.sha;
+      });
+    },
+
+    validateToken: function(token) {
+      return fetch(App.github.apiBase + '/user', {
+        headers: {
+          'Authorization': 'token ' + token,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      }).then(function(r) {
+        if (!r.ok) throw new Error('invalid');
+        return r.json();
+      });
+    }
+  },
+
+  // ── Router ────────────────────────────────────────────────────────────
+  router: {
+    navigate: function(view, params) {
+      App.state.view = view;
+      if (params && params.articleId !== undefined) App.state.articleId = params.articleId;
+      document.querySelectorAll('.nav-item').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.view === view);
+      });
+      var renderer = App.views[view];
+      if (renderer) renderer.render();
+    }
+  },
+
+  // ── Helpers ───────────────────────────────────────────────────────────
+  esc: function(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  },
+
+  articleById: function(id) {
+    return App.state.content.articles.find(function(a) { return a.id === id; });
+  },
+
+  sectionBySlug: function(slug) {
+    return App.state.content.sections.find(function(s) { return s.slug === slug; });
+  },
+
+  phColor: function(ph) {
+    var map = {
+      'img-ph--news':     '#b0c4de',
+      'img-ph--features': '#c4a882',
+      'img-ph--opinion':  '#d4a0a0',
+      'img-ph--sports':   '#90a870',
+      'img-ph--reviews':  '#b8a8c8',
+      'img-ph--default':  '#cccccc'
+    };
+    return map[ph] || '#cccccc';
+  },
+
+  showError: function(msg) {
+    var el = document.createElement('div');
+    el.className = 'notice notice-error';
+    el.id = 'globalNotice';
+    el.textContent = msg;
+    document.getElementById('contentArea').insertAdjacentElement('afterbegin', el);
+    setTimeout(function() { var n = document.getElementById('globalNotice'); if (n) n.remove(); }, 5000);
+  },
+
+  showSuccess: function(msg) {
+    var el = document.createElement('div');
+    el.className = 'notice notice-success';
+    el.id = 'globalNotice';
+    el.textContent = msg;
+    document.getElementById('contentArea').insertAdjacentElement('afterbegin', el);
+    setTimeout(function() { var n = document.getElementById('globalNotice'); if (n) n.remove(); }, 3000);
+  },
+
+  handleApiError: function(err) {
+    if (err.message === 'AUTH_ERROR') {
+      App.router.navigate('settings');
+      App.showError('Your token is invalid or expired. Please update it in Settings.');
+    } else if (err.message === 'SHA_CONFLICT') {
+      if (confirm('Someone else saved since you loaded. Reload to get the latest version?\n\n(Your unsaved changes will be lost.)')) {
+        window.location.reload();
+      }
+    } else if (err.message === 'Failed to fetch' || err.message.includes('NetworkError')) {
+      App.showError('You appear to be offline. Changes were not saved.');
+    } else {
+      App.showError('Error: ' + err.message);
+    }
+  },
+
+  // ── Views (populated below) ───────────────────────────────────────────
+  views: {},
+
+  // ── Init ──────────────────────────────────────────────────────────────
+  init: function() {
+    document.querySelectorAll('.nav-item[data-view]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        App.router.navigate(btn.dataset.view);
+      });
+    });
+
+    App.state.token = localStorage.getItem('rs_token');
+
+    if (!App.state.token) {
+      App.router.navigate('settings');
+      return;
+    }
+
+    document.getElementById('topbarTitle').textContent = 'Loading…';
+    document.getElementById('contentArea').innerHTML = '<div class="spinner"></div>';
+
+    App.github.getContent().then(function() {
+      App.github.validateToken(App.state.token).then(function(user) {
+        document.getElementById('sidebarFooter').innerHTML = 'Signed in as <strong>@' + App.esc(user.login) + '</strong>';
+      }).catch(function() {});
+      App.router.navigate('articles');
+    }).catch(function(err) {
+      App.handleApiError(err);
+    });
+  }
+};
+
+// ── Settings view ──────────────────────────────────────────────────────────
+App.views.settings = {
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'Settings';
+    document.getElementById('topbarActions').innerHTML = '';
+
+    var savedToken = localStorage.getItem('rs_token') || '';
+    document.getElementById('contentArea').innerHTML =
+      '<div class="settings-wrap">' +
+        '<div class="card">' +
+          '<div class="card-title">GitHub Authentication</div>' +
+          '<div class="field">' +
+            '<label>Personal Access Token</label>' +
+            '<input type="password" id="tokenInput" value="' + App.esc(savedToken) + '" placeholder="ghp_...">' +
+          '</div>' +
+          '<p style="font-size:12px;color:#888;margin-bottom:14px;">Generate at github.com → Settings → Developer settings → Personal access tokens. Required scope: <strong>repo</strong> (or <strong>contents: write</strong> for fine-grained tokens).</p>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button class="btn btn-primary" id="saveTokenBtn">Save &amp; Connect</button>' +
+            '<button class="btn btn-secondary" id="testTokenBtn">Test Connection</button>' +
+            (savedToken ? '<button class="btn btn-danger" id="clearTokenBtn">Clear Token</button>' : '') +
+          '</div>' +
+          '<div id="tokenStatus" style="margin-top:12px;font-size:12px;"></div>' +
+        '</div>' +
+        '<div class="card">' +
+          '<div class="card-title">Repository</div>' +
+          '<div class="field"><label>Owner</label><input type="text" id="repoOwner" value="' + App.esc(App.REPO_OWNER) + '"></div>' +
+          '<div class="field"><label>Repository name</label><input type="text" id="repoName" value="' + App.esc(App.REPO_NAME) + '"></div>' +
+          '<button class="btn btn-secondary" id="saveRepoBtn">Update Repository</button>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('saveTokenBtn').addEventListener('click', function() {
+      var token = document.getElementById('tokenInput').value.trim();
+      if (!token) return;
+      var statusEl = document.getElementById('tokenStatus');
+      statusEl.innerHTML = '<span class="spinner"></span> Connecting…';
+      App.github.validateToken(token).then(function(user) {
+        localStorage.setItem('rs_token', token);
+        App.state.token = token;
+        statusEl.innerHTML = '<span style="color:#166534;">✓ Connected as @' + App.esc(user.login) + '</span>';
+        document.getElementById('sidebarFooter').innerHTML = 'Signed in as <strong>@' + App.esc(user.login) + '</strong>';
+        App.github.getContent().then(function() { App.router.navigate('articles'); });
+      }).catch(function() {
+        statusEl.innerHTML = '<span style="color:#b91c1c;">✗ Token invalid or no repo access.</span>';
+      });
+    });
+
+    document.getElementById('testTokenBtn').addEventListener('click', function() {
+      var token = document.getElementById('tokenInput').value.trim();
+      if (!token) return;
+      var statusEl = document.getElementById('tokenStatus');
+      statusEl.innerHTML = '<span class="spinner"></span> Testing…';
+      App.github.validateToken(token).then(function(user) {
+        statusEl.innerHTML = '<span style="color:#166534;">✓ Valid — connected as @' + App.esc(user.login) + '</span>';
+      }).catch(function() {
+        statusEl.innerHTML = '<span style="color:#b91c1c;">✗ Token invalid or expired.</span>';
+      });
+    });
+
+    var clearBtn = document.getElementById('clearTokenBtn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        localStorage.removeItem('rs_token');
+        App.state.token = null;
+        App.views.settings.render();
+      });
+    }
+
+    document.getElementById('saveRepoBtn').addEventListener('click', function() {
+      App.REPO_OWNER = document.getElementById('repoOwner').value.trim();
+      App.REPO_NAME  = document.getElementById('repoName').value.trim();
+      App.showSuccess('Repository updated.');
+    });
+  }
+};
+
+// ── All Articles view ──────────────────────────────────────────────────────
+App.views.articles = {
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'All Articles';
+    document.getElementById('topbarActions').innerHTML =
+      '<button class="btn btn-primary" id="newArticleBtn">+ New Article</button>';
+
+    var articles = App.state.content.articles;
+    var rows = articles.map(function(a) {
+      var secObj = App.sectionBySlug(a.section) || {};
+      return '<tr>' +
+        '<td style="padding:10px 12px;font-weight:500;">' +
+          '<a href="#" class="art-link" data-id="' + App.esc(a.id) + '" style="color:#C85500;">' + App.esc(a.title) + '</a>' +
+        '</td>' +
+        '<td style="padding:10px 12px;color:#888;">' + App.esc(a.author) + '</td>' +
+        '<td style="padding:10px 12px;color:#888;">' + App.esc(secObj.title || a.section) + '</td>' +
+        '<td style="padding:10px 12px;">' +
+          '<span class="badge ' + (a.published ? 'badge-pub' : 'badge-draft') + '">' +
+            (a.published ? 'Published' : 'Draft') +
+          '</span>' +
+        '</td>' +
+        '<td style="padding:10px 12px;">' +
+          '<a href="#" class="art-link btn btn-secondary" data-id="' + App.esc(a.id) + '" style="font-size:12px;">Edit</a>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+
+    document.getElementById('contentArea').innerHTML =
+      '<div class="card" style="padding:0;overflow:hidden;">' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          '<thead><tr style="background:#f8f6f2;border-bottom:1px solid #e8e5e0;">' +
+            '<th style="padding:10px 12px;text-align:left;font-size:12px;color:#888;font-weight:600;">HEADLINE</th>' +
+            '<th style="padding:10px 12px;text-align:left;font-size:12px;color:#888;font-weight:600;">AUTHOR</th>' +
+            '<th style="padding:10px 12px;text-align:left;font-size:12px;color:#888;font-weight:600;">SECTION</th>' +
+            '<th style="padding:10px 12px;text-align:left;font-size:12px;color:#888;font-weight:600;">STATUS</th>' +
+            '<th></th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+
+    document.querySelectorAll('.art-link').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        App.router.navigate('articleEditor', { articleId: link.dataset.id });
+      });
+    });
+
+    document.getElementById('newArticleBtn').addEventListener('click', function() {
+      var newId = 'article-' + Date.now();
+      App.state.content.articles.push({
+        id: newId, title: 'Untitled', author: '', section: App.state.content.sections[0].slug,
+        issue: '', dek: '', body: '', ph: App.state.content.sections[0].ph, credit: '', published: false
+      });
+      App.router.navigate('articleEditor', { articleId: newId });
+    });
+  }
+};
+
+// ── Paste sanitizer ────────────────────────────────────────────────────────
+var Sanitizer = {
+  ALLOWED_TAGS: ['P','STRONG','EM','H2','H3','BLOCKQUOTE','UL','OL','LI','A','BR'],
+
+  sanitizeHTML: function(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    Sanitizer.cleanNode(tmp);
+    return tmp.innerHTML;
+  },
+
+  cleanNode: function(node) {
+    var children = Array.from(node.childNodes);
+    children.forEach(function(child) {
+      if (child.nodeType === 3) return;
+      if (child.nodeType !== 1) { child.remove(); return; }
+      var tag = child.tagName.toUpperCase();
+      if (!Sanitizer.ALLOWED_TAGS.includes(tag)) {
+        var frag = document.createDocumentFragment();
+        Array.from(child.childNodes).forEach(function(c) { frag.appendChild(c.cloneNode(true)); });
+        node.replaceChild(frag, child);
+        Sanitizer.cleanNode(node);
+        return;
+      }
+      Array.from(child.attributes).forEach(function(attr) {
+        if (!(tag === 'A' && attr.name === 'href')) child.removeAttribute(attr.name);
+      });
+      Sanitizer.cleanNode(child);
+    });
+  }
+};
+
+// ── Article Editor view ────────────────────────────────────────────────────
+App.views.articleEditor = {
+  render: function() {
+    var a = App.articleById(App.state.articleId);
+    if (!a) { App.router.navigate('articles'); return; }
+
+    document.getElementById('topbarTitle').textContent = 'Edit Article';
+    document.getElementById('topbarActions').innerHTML =
+      '<button class="btn btn-secondary" id="saveDraftBtn">Save Draft</button>' +
+      '<button class="btn btn-primary" id="publishBtn">' + (a.published ? 'Update Published' : 'Publish →') + '</button>';
+
+    var sections = App.state.content.sections;
+
+    var swatchesHTML = sections.map(function(sec) {
+      return '<div class="ph-swatch' + (a.ph === sec.ph ? ' selected' : '') + '" data-ph="' + App.esc(sec.ph) + '">' +
+        '<div class="ph-preview" style="background:' + App.phColor(sec.ph) + ';"></div>' +
+        '<div>' + App.esc(sec.title) + '</div>' +
+      '</div>';
+    }).join('') +
+    '<div class="ph-swatch' + (a.ph === 'img-ph--default' ? ' selected' : '') + '" data-ph="img-ph--default">' +
+      '<div class="ph-preview" style="background:#ccc;"></div><div>Default</div>' +
+    '</div>';
+
+    var sectionOptions = sections.map(function(sec) {
+      return '<option value="' + App.esc(sec.slug) + '"' + (a.section === sec.slug ? ' selected' : '') + '>' + App.esc(sec.title) + '</option>';
+    }).join('');
+
+    document.getElementById('contentArea').innerHTML =
+      '<div class="editor-grid">' +
+        '<div><div class="card">' +
+          '<div class="card-title">Article Content</div>' +
+          '<div class="field"><label>Headline</label><input type="text" id="f-title" value="' + App.esc(a.title) + '"></div>' +
+          '<div class="field"><label>Dek (subheadline)</label><textarea id="f-dek">' + App.esc(a.dek) + '</textarea></div>' +
+          '<div class="field"><label>Body</label>' +
+            '<div class="richtext-wrap">' +
+              '<div class="richtext-toolbar">' +
+                '<button class="rt-btn" data-cmd="bold"><b>B</b></button>' +
+                '<button class="rt-btn" data-cmd="italic"><i>I</i></button>' +
+                '<div class="rt-btn-sep"></div>' +
+                '<button class="rt-btn" data-cmd="h2">H2</button>' +
+                '<button class="rt-btn" data-cmd="h3">H3</button>' +
+                '<div class="rt-btn-sep"></div>' +
+                '<button class="rt-btn" data-cmd="blockquote">""</button>' +
+                '<button class="rt-btn" data-cmd="ul">• List</button>' +
+                '<button class="rt-btn" data-cmd="link">🔗 Link</button>' +
+                '<div class="rt-btn-sep"></div>' +
+                '<button class="rt-btn" id="pasteDocBtn" style="color:#C85500;font-weight:600;">Paste from Docs</button>' +
+              '</div>' +
+              '<div class="richtext-body" id="richBody" contenteditable="true">' + (a.body || '') + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div></div>' +
+        '<div><div class="card">' +
+          '<div class="card-title">Details</div>' +
+          '<div style="margin-bottom:14px;">' +
+            '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Status</div>' +
+            '<button class="status-pill ' + (a.published ? 'status-pub' : 'status-draft') + '" id="statusToggle">' +
+              (a.published ? '● Published' : '○ Draft') +
+            '</button>' +
+          '</div>' +
+          '<div class="field"><label>Author</label><input type="text" id="f-author" value="' + App.esc(a.author) + '"></div>' +
+          '<div class="field"><label>Section</label><select id="f-section">' + sectionOptions + '</select></div>' +
+          '<div class="field"><label>Issue / Date</label><input type="text" id="f-issue" value="' + App.esc(a.issue) + '"></div>' +
+          '<div style="margin-bottom:14px;">' +
+            '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Photo Placeholder</div>' +
+            '<div class="ph-grid" id="phGrid">' + swatchesHTML + '</div>' +
+          '</div>' +
+          '<div class="field"><label>Photo Credit</label><input type="text" id="f-credit" value="' + App.esc(a.credit) + '"></div>' +
+        '</div></div>' +
+      '</div>';
+
+    document.querySelectorAll('.rt-btn[data-cmd]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var cmd = btn.dataset.cmd;
+        var body = document.getElementById('richBody');
+        body.focus();
+        if (cmd === 'bold')            document.execCommand('bold');
+        else if (cmd === 'italic')     document.execCommand('italic');
+        else if (cmd === 'h2')         document.execCommand('formatBlock', false, 'h2');
+        else if (cmd === 'h3')         document.execCommand('formatBlock', false, 'h3');
+        else if (cmd === 'blockquote') document.execCommand('formatBlock', false, 'blockquote');
+        else if (cmd === 'ul')         document.execCommand('insertUnorderedList');
+        else if (cmd === 'link') {
+          var url = prompt('Enter URL:');
+          if (url) document.execCommand('createLink', false, url);
+        }
+      });
+    });
+
+    document.getElementById('richBody').addEventListener('paste', function(e) {
+      e.preventDefault();
+      var html = (e.clipboardData || window.clipboardData).getData('text/html');
+      var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      var cleaned = html ? Sanitizer.sanitizeHTML(html) : text.split('\n').map(function(l) {
+        return l.trim() ? '<p>' + App.esc(l) + '</p>' : '';
+      }).join('');
+      document.execCommand('insertHTML', false, cleaned);
+    });
+
+    document.getElementById('pasteDocBtn').addEventListener('click', function() {
+      var backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.innerHTML =
+        '<div class="modal">' +
+          '<h3>Paste from Google Docs</h3>' +
+          '<p style="font-size:13px;color:#666;margin-bottom:12px;">Paste your Google Docs text below. Formatting will be cleaned automatically.</p>' +
+          '<textarea id="docsInput" style="width:100%;height:200px;border:1px solid #ddd;border-radius:5px;padding:8px;font-size:13px;font-family:inherit;" placeholder="Paste here (Ctrl+V / Cmd+V)…"></textarea>' +
+          '<div class="modal-actions">' +
+            '<button class="btn btn-secondary" id="modalCancel">Cancel</button>' +
+            '<button class="btn btn-primary" id="modalConfirm">Insert Cleaned Text</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(backdrop);
+      document.getElementById('docsInput').focus();
+      document.getElementById('modalCancel').addEventListener('click', function() { backdrop.remove(); });
+      document.getElementById('modalConfirm').addEventListener('click', function() {
+        var raw = document.getElementById('docsInput').value;
+        var cleaned = raw.split('\n').map(function(l) {
+          return l.trim() ? '<p>' + App.esc(l) + '</p>' : '';
+        }).join('');
+        document.getElementById('richBody').focus();
+        document.execCommand('insertHTML', false, cleaned);
+        backdrop.remove();
+      });
+    });
+
+    document.getElementById('phGrid').addEventListener('click', function(e) {
+      var swatch = e.target.closest('.ph-swatch');
+      if (!swatch) return;
+      document.querySelectorAll('.ph-swatch').forEach(function(s) { s.classList.remove('selected'); });
+      swatch.classList.add('selected');
+    });
+
+    document.getElementById('statusToggle').addEventListener('click', function() {
+      a.published = !a.published;
+      this.className = 'status-pill ' + (a.published ? 'status-pub' : 'status-draft');
+      this.textContent = a.published ? '● Published' : '○ Draft';
+      document.getElementById('publishBtn').textContent = a.published ? 'Update Published' : 'Publish →';
+    });
+
+    function collectAndSave(published) {
+      a.title   = document.getElementById('f-title').value.trim();
+      a.dek     = document.getElementById('f-dek').value.trim();
+      a.author  = document.getElementById('f-author').value.trim();
+      a.section = document.getElementById('f-section').value;
+      a.issue   = document.getElementById('f-issue').value.trim();
+      a.credit  = document.getElementById('f-credit').value.trim();
+      a.body    = document.getElementById('richBody').innerHTML;
+      var selSwatch = document.querySelector('.ph-swatch.selected');
+      if (selSwatch) a.ph = selSwatch.dataset.ph;
+      a.published = published;
+
+      var btn = published ? document.getElementById('publishBtn') : document.getElementById('saveDraftBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      App.github.saveContent((published ? 'Publish' : 'Draft') + ': ' + a.title).then(function() {
+        App.showSuccess(published ? 'Published!' : 'Draft saved.');
+        document.getElementById('publishBtn').textContent = published ? 'Update Published' : 'Publish →';
+        btn.disabled = false;
+      }).catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = published ? 'Publish →' : 'Save Draft';
+        App.handleApiError(err);
+      });
+    }
+
+    document.getElementById('saveDraftBtn').addEventListener('click', function() { collectAndSave(false); });
+    document.getElementById('publishBtn').addEventListener('click', function() { collectAndSave(true); });
+  }
+};
+
+// ── Homepage Editor view ───────────────────────────────────────────────────
+App.views.homepage = {
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'Homepage Layout';
+    document.getElementById('topbarActions').innerHTML =
+      '<span style="font-size:12px;color:#aaa;">Each change commits to GitHub</span>';
+    App.views.homepage.renderContent();
+  },
+
+  renderContent: function() {
+    var hp       = App.state.content.homepage;
+    var articles = App.state.content.articles;
+    var sections = App.state.content.sections;
+
+    function slotHTML(id, labelText, isHero) {
+      var a = App.articleById(id);
+      if (!a) return '<div class="hp-slot"><span style="font-size:12px;color:#aaa;">Empty slot</span><button class="hp-slot-change" style="margin-left:auto;">Choose</button></div>';
+      var secObj = App.sectionBySlug(a.section) || {};
+      return '<div class="hp-slot' + (isHero ? ' hero-slot' : '') + '">' +
+        '<div class="hp-slot-ph" style="background:' + App.phColor(a.ph) + ';"></div>' +
+        '<div class="hp-slot-info">' +
+          (labelText ? '<div class="hp-slot-label">' + App.esc(labelText) + '</div>' : '') +
+          '<div class="hp-slot-hed">' + App.esc(a.title) + '</div>' +
+          '<div class="hp-slot-meta">By ' + App.esc(a.author) + ' · ' + App.esc(secObj.title || '') + '</div>' +
+        '</div>' +
+        '<button class="hp-slot-change">Change</button>' +
+      '</div>';
+    }
+
+    var secGridsHTML = sections.map(function(sec) {
+      var ids = hp.sections[sec.slug] || [];
+      var total = articles.filter(function(a) { return a.section === sec.slug && a.published; }).length;
+      var slotsHTML = [0,1,2].map(function(i) {
+        var id = ids[i] || null;
+        var a = id ? App.articleById(id) : null;
+        return '<div class="hp-slot" data-sec="' + App.esc(sec.slug) + '" data-idx="' + i + '">' +
+          (a
+            ? '<div class="hp-slot-ph" style="background:' + App.phColor(a.ph) + ';width:48px;height:32px;border-radius:3px;flex-shrink:0;"></div>' +
+              '<div class="hp-slot-info"><div class="hp-slot-hed" style="font-size:12px;">' + App.esc(a.title) + '</div>' +
+              '<div class="hp-slot-meta">' + App.esc(a.author) + '</div></div>'
+            : '<span style="font-size:12px;color:#aaa;">Empty</span>'
+          ) +
+          '<button class="hp-slot-change" style="margin-left:auto;" data-sec="' + App.esc(sec.slug) + '" data-idx="' + i + '">Change</button>' +
+        '</div>';
+      }).join('');
+
+      return '<div class="sec-grid-row">' +
+        '<div class="sec-grid-row-head">' +
+          '<div class="sec-grid-row-title">' + App.esc(sec.title) + '</div>' +
+          '<div style="font-size:11px;color:#aaa;">' + Math.min(ids.filter(Boolean).length, 3) + ' of ' + total + ' shown</div>' +
+        '</div>' +
+        '<div class="slot-list">' + slotsHTML + '</div>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('contentArea').innerHTML =
+      '<div class="card">' +
+        '<div class="card-title">Hero — Main Story</div>' +
+        '<div id="heroSlot">' + slotHTML(hp.hero, 'Hero', true) + '</div>' +
+        '<div style="margin-top:16px;">' +
+          '<div class="card-title">Hero — Side Stories</div>' +
+          '<div id="asideSlots">' +
+            [0,1,2].map(function(i) {
+              return '<div data-aside-idx="' + i + '">' + slotHTML(hp.heroAside[i], 'Slot ' + (i+1), false) + '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card"><div class="card-title">Section Grids</div>' + secGridsHTML + '</div>';
+
+    document.getElementById('contentArea').addEventListener('click', function(e) {
+      var btn = e.target.closest('.hp-slot-change');
+      if (!btn) return;
+
+      var isHero   = !!e.target.closest('#heroSlot');
+      var asideDiv = e.target.closest('[data-aside-idx]');
+      var asideIdx = asideDiv ? parseInt(asideDiv.dataset.asideIdx) : null;
+      var sec      = btn.dataset.sec;
+      var idx      = btn.dataset.idx !== undefined ? parseInt(btn.dataset.idx) : null;
+
+      App.views.homepage.openPicker(function(chosenId) {
+        if (isHero) {
+          App.state.content.homepage.hero = chosenId;
+        } else if (asideIdx !== null) {
+          App.state.content.homepage.heroAside[asideIdx] = chosenId;
+        } else if (sec !== undefined && idx !== null) {
+          if (!App.state.content.homepage.sections[sec]) App.state.content.homepage.sections[sec] = [];
+          App.state.content.homepage.sections[sec][idx] = chosenId;
+        }
+        App.github.saveContent('Homepage: update slot').then(function() {
+          App.views.homepage.renderContent();
+          App.showSuccess('Homepage updated.');
+        }).catch(App.handleApiError);
+      });
+    });
+  },
+
+  openPicker: function(onSelect) {
+    var articles = App.state.content.articles.filter(function(a) { return a.published; });
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<div class="modal" style="max-height:80vh;display:flex;flex-direction:column;">' +
+        '<h3>Choose Article</h3>' +
+        '<input type="text" id="pickerSearch" placeholder="Search…" style="border:1px solid #ddd;border-radius:5px;padding:7px 10px;font-size:13px;margin-bottom:8px;">' +
+        '<div class="picker-list" id="pickerList"></div>' +
+        '<div class="modal-actions"><button class="btn btn-secondary" id="pickerCancel">Cancel</button></div>' +
+      '</div>';
+    document.body.appendChild(backdrop);
+
+    function renderList(filter) {
+      var filtered = articles.filter(function(a) {
+        return !filter || a.title.toLowerCase().includes(filter.toLowerCase()) || a.author.toLowerCase().includes(filter.toLowerCase());
+      });
+      document.getElementById('pickerList').innerHTML = filtered.map(function(a) {
+        var secObj = App.sectionBySlug(a.section) || {};
+        return '<div class="picker-item" data-id="' + App.esc(a.id) + '">' +
+          '<div><div class="picker-item-hed">' + App.esc(a.title) + '</div>' +
+            '<div class="picker-item-meta">' + App.esc(a.author) + ' · ' + App.esc(secObj.title || '') + '</div></div>' +
+          '<span style="font-size:11px;color:#C85500;">Select</span>' +
+        '</div>';
+      }).join('');
+    }
+    renderList('');
+
+    document.getElementById('pickerSearch').addEventListener('input', function() { renderList(this.value); });
+    document.getElementById('pickerList').addEventListener('click', function(e) {
+      var item = e.target.closest('.picker-item');
+      if (!item) return;
+      backdrop.remove();
+      onSelect(item.dataset.id);
+    });
+    document.getElementById('pickerCancel').addEventListener('click', function() { backdrop.remove(); });
+  }
+};
+
+// ── Section Manager view ───────────────────────────────────────────────────
+App.views.sections = {
+  PH_OPTIONS: [
+    { ph: 'img-ph--news',     label: 'News blue'      },
+    { ph: 'img-ph--features', label: 'Features tan'   },
+    { ph: 'img-ph--opinion',  label: 'Opinion red'    },
+    { ph: 'img-ph--sports',   label: 'Sports green'   },
+    { ph: 'img-ph--reviews',  label: 'Reviews purple' },
+    { ph: 'img-ph--default',  label: 'Default gray'   }
+  ],
+
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'Sections';
+    document.getElementById('topbarActions').innerHTML =
+      '<button class="btn btn-primary" id="addSectionBtn">+ Add Section</button>';
+    App.views.sections.renderList();
+    document.getElementById('addSectionBtn').addEventListener('click', function() {
+      App.views.sections.openAddModal();
+    });
+  },
+
+  renderList: function() {
+    var sections = App.state.content.sections;
+    var articles = App.state.content.articles;
+
+    var rowsHTML = sections.map(function(sec) {
+      var count = articles.filter(function(a) { return a.section === sec.slug; }).length;
+      var colorDots = App.views.sections.PH_OPTIONS.map(function(opt) {
+        return '<div class="color-dot' + (sec.ph === opt.ph ? ' selected' : '') + '" ' +
+          'style="background:' + App.phColor(opt.ph) + ';" ' +
+          'title="' + App.esc(opt.label) + '" ' +
+          'data-slug="' + App.esc(sec.slug) + '" data-ph="' + App.esc(opt.ph) + '"></div>';
+      }).join('');
+
+      return '<div class="sec-row" data-slug="' + App.esc(sec.slug) + '">' +
+        '<span class="sec-drag">⠿</span>' +
+        '<span class="ph-dot" style="background:' + App.phColor(sec.ph) + ';"></span>' +
+        '<div class="sec-info">' +
+          '<input class="sec-title-input" value="' + App.esc(sec.title) + '" data-slug="' + App.esc(sec.slug) + '">' +
+          '<div class="sec-slug">/' + App.esc(sec.slug) + ' · ' + count + ' article' + (count === 1 ? '' : 's') + '</div>' +
+          '<div class="color-picker-row">' + colorDots + '</div>' +
+        '</div>' +
+        (count === 0
+          ? '<button class="btn btn-danger sec-delete" data-slug="' + App.esc(sec.slug) + '" style="font-size:12px;">Delete</button>'
+          : '<span style="font-size:11px;color:#aaa;">' + count + ' articles</span>'
+        ) +
+      '</div>';
+    }).join('');
+
+    document.getElementById('contentArea').innerHTML =
+      '<div class="card"><div class="card-title">Manage Sections</div><div id="secList">' + rowsHTML + '</div></div>';
+
+    document.querySelectorAll('.sec-title-input').forEach(function(input) {
+      input.addEventListener('blur', function() {
+        var slug = input.dataset.slug;
+        var sec = App.sectionBySlug(slug);
+        if (!sec || input.value.trim() === sec.title) return;
+        sec.title = input.value.trim();
+        App.github.saveContent('Rename section: ' + sec.title).then(function() {
+          App.showSuccess('Section renamed.');
+          App.views.sections.renderList();
+        }).catch(App.handleApiError);
+      });
+    });
+
+    document.querySelectorAll('.color-dot').forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        var sec = App.sectionBySlug(dot.dataset.slug);
+        if (!sec) return;
+        sec.ph = dot.dataset.ph;
+        App.github.saveContent('Section placeholder: ' + sec.title).then(function() {
+          App.views.sections.renderList();
+        }).catch(App.handleApiError);
+      });
+    });
+
+    document.querySelectorAll('.sec-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var slug = btn.dataset.slug;
+        var sec = App.sectionBySlug(slug);
+        var affected = App.state.content.articles.filter(function(a) { return a.section === slug; });
+        if (affected.length) {
+          alert('Cannot delete: ' + affected.length + ' article(s) still reference this section. Reassign them first.');
+          return;
+        }
+        if (!confirm('Delete section "' + sec.title + '"? This cannot be undone.')) return;
+        App.state.content.sections = App.state.content.sections.filter(function(s) { return s.slug !== slug; });
+        delete App.state.content.homepage.sections[slug];
+        App.github.saveContent('Delete section: ' + sec.title).then(function() {
+          App.showSuccess('Section deleted.');
+          App.views.sections.renderList();
+        }).catch(App.handleApiError);
+      });
+    });
+  },
+
+  openAddModal: function() {
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<div class="modal">' +
+        '<h3>Add Section</h3>' +
+        '<div class="field"><label>Display Title</label><input type="text" id="newSecTitle" placeholder="e.g. Arts &amp; Culture"></div>' +
+        '<div class="field"><label>URL Slug <span style="color:#aaa;font-weight:400;">(letters and hyphens only)</span></label>' +
+          '<input type="text" id="newSecSlug" placeholder="e.g. arts"></div>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-secondary" id="addSecCancel">Cancel</button>' +
+          '<button class="btn btn-primary" id="addSecConfirm">Add Section</button>' +
+        '</div>' +
+        '<div id="addSecError" style="font-size:12px;color:#b91c1c;margin-top:8px;"></div>' +
+      '</div>';
+    document.body.appendChild(backdrop);
+
+    document.getElementById('newSecTitle').addEventListener('input', function() {
+      var slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      document.getElementById('newSecSlug').value = slug;
+    });
+
+    document.getElementById('addSecCancel').addEventListener('click', function() { backdrop.remove(); });
+    document.getElementById('addSecConfirm').addEventListener('click', function() {
+      var title = document.getElementById('newSecTitle').value.trim();
+      var slug  = document.getElementById('newSecSlug').value.trim();
+      var errEl = document.getElementById('addSecError');
+      if (!title || !slug) { errEl.textContent = 'Both fields are required.'; return; }
+      if (!/^[a-z0-9-]+$/.test(slug)) { errEl.textContent = 'Slug may only contain lowercase letters, numbers, and hyphens.'; return; }
+      if (App.sectionBySlug(slug)) { errEl.textContent = 'A section with this slug already exists.'; return; }
+
+      App.state.content.sections.push({ slug: slug, title: title, ph: 'img-ph--default' });
+      App.state.content.homepage.sections[slug] = [];
+
+      App.github.saveContent('Add section: ' + title).then(function() {
+        backdrop.remove();
+        App.showSuccess('Section "' + title + '" added.');
+        App.views.sections.renderList();
+      }).catch(App.handleApiError);
+    });
+  }
+};
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() { App.init(); });
+</script>
+</body>
+</html>
