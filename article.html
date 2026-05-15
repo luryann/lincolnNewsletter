@@ -183,7 +183,15 @@
       var authorEl = document.querySelector('.art-header__author');
       if (authorEl) authorEl.textContent = 'By ' + a.author;
       var issueEl = document.querySelector('.art-header__issue');
-      if (issueEl) issueEl.textContent = a.issue;
+      if (issueEl) {
+        var issueLabel = a.issue || '';
+        if (a.issueId) {
+          var issues = data.issues || [];
+          var issueObj = issues.find(function(i){ return i.id === a.issueId; });
+          if (issueObj) issueLabel = issueObj.title + ' · ' + issueObj.date;
+        }
+        issueEl.textContent = issueLabel;
+      }
       document.querySelectorAll('.art-header__label').forEach(function(el) { el.textContent = secObj.title || ''; });
 
       // Breadcrumb
@@ -193,12 +201,22 @@
         crumbLinks[1].href = 'section.html?s=' + a.section;
       }
 
-      // Lead image placeholder
-      var leadImg = document.querySelector('.art-lead-img .img-ph');
-      if (leadImg) {
-        leadImg.className = 'img-ph ' + a.ph;
-        var credit = leadImg.querySelector('.img-ph__credit');
-        if (credit && a.credit) credit.textContent = a.credit;
+      // Lead image
+      var leadImgWrap = document.querySelector('.art-lead-img');
+      if (leadImgWrap) {
+        if (a.photo) {
+          var rawBase = 'https://raw.githubusercontent.com/luryann/lincolnNewsletter/main/';
+          leadImgWrap.innerHTML =
+            '<img src="' + rawBase + esc(a.photo) + '" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;">' +
+            (a.credit ? '<p class="art-caption">' + esc(a.credit) + '</p>' : '');
+        } else {
+          var leadImg = leadImgWrap.querySelector('.img-ph');
+          if (leadImg) {
+            leadImg.className = 'img-ph ' + esc(a.ph);
+            var credit = leadImg.querySelector('.img-ph__credit');
+            if (credit && a.credit) credit.textContent = a.credit;
+          }
+        }
       }
 
       // Body — only inject if we have content
