@@ -122,6 +122,21 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
 .color-picker-row{display:flex;gap:6px;margin-top:6px;}
 .color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
 .color-dot.selected{border-color:#1a1916;}
+/* ── Issues view ── */
+.issue-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0ede8;}
+.issue-row:last-child{border-bottom:none;}
+.issue-info{flex:1;}
+.issue-title{font-size:14px;font-weight:600;}
+.issue-meta{font-size:11px;color:#aaa;margin-top:2px;}
+.issue-actions{display:flex;gap:6px;}
+.assign-list{max-height:360px;overflow-y:auto;border:1px solid #e8e5e0;border-radius:6px;margin-top:8px;}
+.assign-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #f0ede8;cursor:pointer;}
+.assign-item:last-child{border-bottom:none;}
+.assign-item:hover{background:#fff8f4;}
+.assign-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;flex-shrink:0;}
+.assign-item-info{flex:1;}
+.assign-item-hed{font-size:13px;font-weight:500;}
+.assign-item-meta{font-size:11px;color:#888;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -966,6 +981,177 @@ App.views.sections = {
         App.showSuccess('Section "' + title + '" added.');
         App.views.sections.renderList();
       }).catch(App.handleApiError);
+    });
+  }
+};
+
+// ── Issues view ────────────────────────────────────────────────────────────
+App.views.issues = {
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'Issues';
+    document.getElementById('topbarActions').innerHTML =
+      '<button class="btn btn-primary" id="newIssueBtn">+ New Issue</button>';
+
+    App.views.issues.renderList();
+
+    document.getElementById('newIssueBtn').addEventListener('click', function() {
+      App.views.issues.openCreateModal();
+    });
+  },
+
+  renderList: function() {
+    var issues = (App.state.content.issues || []).slice().reverse();
+    var articles = App.state.content.articles;
+
+    if (!issues.length) {
+      document.getElementById('contentArea').innerHTML =
+        '<div class="card"><p style="color:#888;font-size:13px;">No issues yet. Click "+ New Issue" to create one.</p></div>';
+      return;
+    }
+
+    var rowsHTML = issues.map(function(issue) {
+      var count = articles.filter(function(a){ return a.issueId === issue.id; }).length;
+      return '<div class="issue-row">' +
+        '<div class="issue-info">' +
+          '<div class="issue-title">' + App.esc(issue.title) + ' &mdash; ' + App.esc(issue.date) + '</div>' +
+          '<div class="issue-meta">' + count + ' article' + (count === 1 ? '' : 's') + ' &nbsp;&middot;&nbsp; Cover: ' +
+            App.esc((App.articleById(issue.coverArticle) || {title: 'None'}).title) +
+          '</div>' +
+        '</div>' +
+        '<div class="issue-actions">' +
+          '<button class="btn btn-secondary issue-print" data-id="' + App.esc(issue.id) + '" style="font-size:12px;">Print</button>' +
+          '<button class="btn btn-secondary issue-edit" data-id="' + App.esc(issue.id) + '" style="font-size:12px;">Edit</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('contentArea').innerHTML =
+      '<div class="card" style="padding:0 20px;">' + rowsHTML + '</div>';
+
+    document.querySelectorAll('.issue-print').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        window.open('print.html?issue=' + encodeURIComponent(btn.dataset.id), '_blank');
+      });
+    });
+
+    document.querySelectorAll('.issue-edit').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var issue = App.issueById(btn.dataset.id);
+        if (issue) App.views.issues.openEditModal(issue);
+      });
+    });
+  },
+
+  openCreateModal: function() {
+    var articles = App.state.content.articles.filter(function(a){ return a.published; });
+    var artOptions = articles.map(function(a) {
+      return '<option value="' + App.esc(a.id) + '">' + App.esc(a.title) + '</option>';
+    }).join('');
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<div class="modal">' +
+        '<h3>New Issue</h3>' +
+        '<div class="field"><label>Title (e.g. "Issue 7")</label><input type="text" id="mi-title" placeholder="Issue 7"></div>' +
+        '<div class="field"><label>Date (e.g. "May 2026")</label><input type="text" id="mi-date" placeholder="May 2026"></div>' +
+        '<div class="field"><label>Cover Article</label><select id="mi-cover"><option value="">— None —</option>' + artOptions + '</select></div>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-secondary" id="mi-cancel">Cancel</button>' +
+          '<button class="btn btn-primary" id="mi-save">Create Issue</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(backdrop);
+
+    document.getElementById('mi-cancel').addEventListener('click', function() { backdrop.remove(); });
+    document.getElementById('mi-save').addEventListener('click', function() {
+      var title = document.getElementById('mi-title').value.trim();
+      var date  = document.getElementById('mi-date').value.trim();
+      var cover = document.getElementById('mi-cover').value;
+      if (!title || !date) { alert('Title and date are required.'); return; }
+
+      if (!App.state.content.issues) App.state.content.issues = [];
+      var id = 'issue-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      App.state.content.issues.push({ id: id, title: title, date: date, coverArticle: cover || null });
+
+      var saveBtn = document.getElementById('mi-save');
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+      App.github.saveContent('Issues: create ' + title).then(function() {
+        backdrop.remove();
+        App.showSuccess('Issue created.');
+        App.views.issues.renderList();
+      }).catch(function(err) {
+        saveBtn.disabled = false; saveBtn.textContent = 'Create Issue';
+        App.handleApiError(err);
+      });
+    });
+  },
+
+  openEditModal: function(issue) {
+    var articles = App.state.content.articles;
+    var artOptions = App.state.content.articles
+      .filter(function(a){ return a.published; })
+      .map(function(a) {
+        return '<option value="' + App.esc(a.id) + '"' + (issue.coverArticle === a.id ? ' selected' : '') + '>' + App.esc(a.title) + '</option>';
+      }).join('');
+
+    var assignItems = articles.map(function(a) {
+      var checked = a.issueId === issue.id ? ' checked' : '';
+      var secObj  = App.sectionBySlug(a.section) || {};
+      return '<label class="assign-item">' +
+        '<input type="checkbox" class="assign-check" data-id="' + App.esc(a.id) + '"' + checked + '>' +
+        '<div class="assign-item-info">' +
+          '<div class="assign-item-hed">' + App.esc(a.title) + '</div>' +
+          '<div class="assign-item-meta">' + App.esc(a.author) + ' &nbsp;&middot;&nbsp; ' + App.esc(secObj.title || a.section) + '</div>' +
+        '</div>' +
+      '</label>';
+    }).join('');
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<div class="modal" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">' +
+        '<h3>Edit Issue</h3>' +
+        '<div style="overflow-y:auto;flex:1;">' +
+          '<div class="field"><label>Title</label><input type="text" id="ei-title" value="' + App.esc(issue.title) + '"></div>' +
+          '<div class="field"><label>Date</label><input type="text" id="ei-date" value="' + App.esc(issue.date) + '"></div>' +
+          '<div class="field"><label>Cover Article</label><select id="ei-cover"><option value="">— None —</option>' + artOptions + '</select></div>' +
+          '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:5px;">Articles in this Issue</div>' +
+          '<div class="assign-list">' + assignItems + '</div>' +
+        '</div>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-secondary" id="ei-cancel">Cancel</button>' +
+          '<button class="btn btn-primary" id="ei-save">Save Changes</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(backdrop);
+
+    document.getElementById('ei-cancel').addEventListener('click', function() { backdrop.remove(); });
+    document.getElementById('ei-save').addEventListener('click', function() {
+      issue.title        = document.getElementById('ei-title').value.trim();
+      issue.date         = document.getElementById('ei-date').value.trim();
+      issue.coverArticle = document.getElementById('ei-cover').value || null;
+
+      document.querySelectorAll('.assign-check').forEach(function(cb) {
+        var a = App.articleById(cb.dataset.id);
+        if (!a) return;
+        if (cb.checked) {
+          a.issueId = issue.id;
+        } else if (a.issueId === issue.id) {
+          a.issueId = null;
+        }
+      });
+
+      var saveBtn = document.getElementById('ei-save');
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+      App.github.saveContent('Issues: update ' + issue.title).then(function() {
+        backdrop.remove();
+        App.showSuccess('Issue saved.');
+        App.views.issues.renderList();
+      }).catch(function(err) {
+        saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
+        App.handleApiError(err);
+      });
     });
   }
 };
