@@ -255,7 +255,8 @@
       "body": "",
       "ph": "img-ph--sports",
       "credit": "Photo ÃÂÃÂ· The Railsplitter",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "softball",
@@ -267,7 +268,8 @@
       "body": "",
       "ph": "img-ph--sports",
       "credit": "Photo ÃÂÃÂ· The Railsplitter",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "neverfall",
@@ -279,7 +281,8 @@
       "body": "",
       "ph": "img-ph--reviews",
       "credit": "Photo ÃÂÃÂ· Amazon.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "mazerunner",
@@ -291,7 +294,8 @@
       "body": "",
       "ph": "img-ph--reviews",
       "credit": "Photo ÃÂÃÂ· Amazon.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "cheerleader",
@@ -303,7 +307,8 @@
       "body": "",
       "ph": "img-ph--reviews",
       "credit": "Photo ÃÂÃÂ· Amazon.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "elsatake",
