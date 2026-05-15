@@ -27,14 +27,9 @@
   </header>
 
   <!-- Navigation -->
-  <nav class="nav" id="mainNav">
-    <div class="nav__inner">
+  <nav class="nav">
+    <div class="nav__inner" id="mainNav">
       <a href="index.html" class="nav__item">Home</a>
-      <a href="section.html?s=news"     class="nav__item" data-sec="news">Lincoln News</a>
-      <a href="section.html?s=features" class="nav__item" data-sec="features">Features</a>
-      <a href="section.html?s=opinion"  class="nav__item" data-sec="opinion">Opinion</a>
-      <a href="section.html?s=sports"   class="nav__item" data-sec="sports">Sports</a>
-      <a href="section.html?s=reviews"  class="nav__item" data-sec="reviews">Reviews</a>
     </div>
   </nav>
 
@@ -88,13 +83,7 @@
       <div class="footer__divider"></div>
       <div>
         <div class="footer__col-title">Sections</div>
-        <div class="footer__links">
-          <a href="section.html?s=news">Lincoln News</a>
-          <a href="section.html?s=features">Features</a>
-          <a href="section.html?s=opinion">Opinion</a>
-          <a href="section.html?s=sports">Sports</a>
-          <a href="section.html?s=reviews">Reviews</a>
-        </div>
+        <div class="footer__links" id="footerNav"></div>
       </div>
     </div>
     <div class="footer__bottom">
@@ -104,163 +93,76 @@
   </footer>
 
   <script>
-    // ── Section data ───────────────────────────────────────────────────────
-    var sections = {
-      news: {
-        title: 'Lincoln News',
-        featured: {
-          id: 'educare',
-          hed: 'Educare: Not Just an Afterschool Program',
-          dek: 'Looking for a place to hangout, have fun, and learn new skills after school? Educare is a nonprofit organization that gives students a safe, welcoming place to learn, explore new interests, join fitness programs, academic clubs, and creative outlets — for free.',
-          author: 'Megan Nim',
-          issue: 'Issue 6, April 2026',
-          ph: 'img-ph--news',
-          credit: 'Photo \u00b7 Megan Nim'
-        },
-        articles: [
-          { id: 'glamclub',  hed: 'More Than Makeup: Inside Lincoln\u2019s Glam Club',              author: 'Aracely Rodriguez', issue: 'April 2026', ph: 'img-ph--news',     credit: 'Photo \u00b7 Aracely Rodriguez', dek: 'Students interested in beauty and cosmetology have found a creative community at Lincoln\u2019s Glam Club \u2014 a place to learn, create, and express themselves.' },
-          { id: 'piday',     hed: 'Pi Day \u2014 A Never-Ending Joy to the Math-Minded',             author: 'Jada Guevara',     issue: 'April 2026', ph: 'img-ph--news',     credit: 'Photo \u00b7 Tiffany Nguyen',    dek: 'MST held a digits-of-Pi competition on March 13th. The winner, Jiayu Li, counted 153 digits before a judges\u2019 dispute stopped the count.' },
-          { id: 'spark',     hed: 'S.P.A.R.K. Club: Students Paving A Road to Knowledge',           author: 'The Railsplitter', issue: 'March 2026', ph: 'img-ph--news',     credit: 'Photo \u00b7 The Railsplitter',  dek: 'A new student club is making waves on campus with a mission to connect peers with academic resources and mentorship opportunities.' }
-        ]
-      },
-      features: {
-        title: 'Features',
-        featured: {
-          id: 'heatwave',
-          hed: 'Southern California Heat Wave: Record-Breaking March Temperatures',
-          dek: 'Los Angeles experienced an anomalously early heat wave in mid-March, with temperatures reaching 112\u00b0F on March 20 \u2014 breaking the all-time U.S. record for the month. Lincoln opened the auditorium during lunch to give students air-conditioned relief.',
-          author: 'Qimei Li',
-          issue: 'Issue 6, April 2026',
-          ph: 'img-ph--features',
-          credit: 'Photo \u00b7 The Railsplitter'
-        },
-        articles: [
-          { id: 'petpeeves',  hed: 'Pet Peeves At School',                                           author: 'Samantha Ortiz',  issue: 'April 2026', ph: 'img-ph--features', credit: 'Photo \u00b7 The Railsplitter',  dek: 'From slow hallway walkers to the no-phone policy, Lincoln students reveal what irritates them most about daily school life.' },
-          { id: 'xbox',       hed: 'Xbox To Be \u201cSunsetted\u201d After 24 Years',                 author: 'Yew Yu',          issue: 'April 2026', ph: 'img-ph--features', credit: 'Photo \u00b7 Microsoft',         dek: 'Microsoft\u2019s new CEO announced plans to wind down the Xbox brand and pivot the company\u2019s gaming resources toward AI.' },
-          { id: 'bts',        hed: 'BTS\u2019 ARIRANG: Some Hits but Mostly Misses',                  author: 'Miranda Garcia',  issue: 'April 2026', ph: 'img-ph--features', credit: 'Photo \u00b7 HYBE',              dek: 'The group\u2019s first album with all seven members in five years spans pop-rock to R&B \u2014 but does it live up to the anticipation?' },
-          { id: 'chavez',     hed: 'US Civil Rights Leader Cesar Chavez Accused of Sexual Abuse',    author: 'S. Martinez & A. Santiago', issue: 'March 2026', ph: 'img-ph--features', credit: '', dek: 'New accounts from survivors have reignited debate over public tributes to the farmworkers\u2019 advocate.' },
-          { id: 'tigercat',   hed: 'Have You Seen the Lincoln Tiger Cat?',                            author: 'Sophia Miranda',  issue: 'April 2026', ph: 'img-ph--features', credit: 'Photo \u00b7 The Railsplitter',  dek: 'A small orange cat has taken up residence on campus, earning treats from students and staff on its morning laps.' },
-          { id: 'nancyguth',  hed: 'The Disappearance of Nancy Guthrie',                             author: 'Sophia Miranda',  issue: 'March 2026', ph: 'img-ph--features', credit: 'Photo \u00b7 EW.com',            dek: 'With no leads, conspiracy theories abound around the 84-year-old woman abducted from her home in Arizona.' }
-        ]
-      },
-      opinion: {
-        title: 'Opinion',
-        featured: {
-          id: 'videogames',
-          hed: 'Are Video Games Losing Their Allure?',
-          dek: 'Epic Games is hemorrhaging players due to Fortnite\u2019s endless collaborations and V-Buck price changes. Roblox is under fire for a controversial chat ban. Popular mobile games are declining. Are gaming companies forgetting who they serve?',
-          author: 'Rebecca Medrano',
-          issue: 'Issue 6, April 2026',
-          ph: 'img-ph--opinion',
-          credit: 'Photo \u00b7 FN.com'
-        },
-        articles: [
-          { id: 'chavez',    hed: 'US Civil Rights Leader Cesar Chavez Accused of Sexual Abuse',   author: 'S. Martinez & A. Santiago', issue: 'March 2026', ph: 'img-ph--opinion', credit: '',                          dek: 'So far five women have come forward accusing Chavez of sexual assault, abuse, and rape while they were young adults and children.' },
-          { id: 'ocean',     hed: 'Clean The Ocean, Save The Planet',                               author: 'The Railsplitter',         issue: 'March 2026', ph: 'img-ph--opinion', credit: 'Photo \u00b7 4Ocean',       dek: '4Ocean\u2019s efforts to create a cleaner world are making a difference \u2014 but individual action matters too.' },
-          { id: 'heatwave',  hed: 'Southern California Heat Wave: What It Means for Our Future',    author: 'Qimei Li',                 issue: 'March 2026', ph: 'img-ph--opinion', credit: 'Photo \u00b7 The Railsplitter', dek: 'A climate scientist predicts CA will face more extreme weather. The record March temperatures are only a preview.' }
-        ]
-      },
-      sports: {
-        title: 'Sports',
-        featured: {
-          id: 'bracket',
-          hed: 'One Billion Reasons to Fill Out a Bracket',
-          dek: 'March Madness 2026 has officially begun, bringing the annual excitement of college basketball\u2019s biggest tournament along with a new level of attention on brackets. Prediction market Kalshi is offering a billion-dollar prize for perfection \u2014 and Lincoln students have opinions.',
-          author: 'Ryan Lu',
-          issue: 'Issue 6, April 2026',
-          ph: 'img-ph--sports',
-          credit: 'Photo \u00b7 NCAA.com'
-        },
-        articles: [
-          { id: 'dodgers',    hed: 'Baseball Is Back and the Dodgers Are At the Top of Their Game', author: 'Aaron Ortiz',      issue: 'April 2026', ph: 'img-ph--sports', credit: 'Photo \u00b7 MLB.com',            dek: 'Opening Night saw the Yankees visit Oracle Park; the Dodgers swept Arizona to start their pursuit of a third consecutive World Series title.' },
-          { id: 'wbc',        hed: 'World Baseball Classic: Team USA Loses 3-2 in a Dramatic Final', author: 'Ruby Campos',     issue: 'April 2026', ph: 'img-ph--sports', credit: 'Photo \u00b7 WBC.com',            dek: 'Venezuela claimed their first-ever WBC title in a tight series that ended dramatically in Miami.' },
-          { id: 'baseball',   hed: 'Tiger Baseball Comes Roaring Back',                              author: 'The Railsplitter', issue: 'April 2026', ph: 'img-ph--sports', credit: 'Photo \u00b7 The Railsplitter',  dek: 'Lincoln blew past the Santee Falcons 9\u20131 in the most commanding margin of the Tigers\u2019 season.' },
-          { id: 'volleyball', hed: 'Volleyball Recap: Lincoln Gets the Win',                         author: 'The Railsplitter', issue: 'April 2026', ph: 'img-ph--sports', credit: 'Photo \u00b7 The Railsplitter',  dek: 'Lincoln took a 3\u20131 victory over Franklin in their sixth consecutive win against the Panthers.' },
-          { id: 'softball',   hed: 'Softball Recap: Lincoln Puts the Hurt on Marquez',               author: 'The Railsplitter', issue: 'April 2026', ph: 'img-ph--sports', credit: 'Photo \u00b7 The Railsplitter',  dek: 'The Tigers\u2019 softball team continued their strong spring campaign with a dominant performance against Marquez.' }
-        ]
-      },
-      reviews: {
-        title: 'Reviews',
-        featured: {
-          id: 'neverfall',
-          hed: 'Never Fall Down by Patricia McCormick',
-          dek: 'It\u2019s always the unexpected things in life that help people survive on their own. Never Fall Down is a story based on the real life events of a small boy in Cambodia who lived with his aunt and sister before being sent to work for the Communist Party. This book would be good to read for people that like reading high suspense stories and stories based on real life.',
-          author: 'Reviewed by Elisas Munoz',
-          issue: 'Issue 6, April 2026',
-          ph: 'img-ph--reviews',
-          credit: 'Photo \u00b7 Amazon.com'
-        },
-        articles: [
-          { id: 'mazerunner', hed: 'The Maze Runner by James Dashner',                               author: 'Reviewed by Daniel Weng',     issue: 'April 2026', ph: 'img-ph--reviews', credit: 'Photo \u00b7 Amazon.com',  dek: 'You wake up with no memories, surrounded by strangers in a deadly shifting labyrinth. A sci-fi thriller that inspired a film franchise.' },
-          { id: 'cheerleader',hed: 'The Cheerleaders by Kara Thomas',                                author: 'Reviewed by Samatha Martinez', issue: 'April 2026', ph: 'img-ph--reviews', credit: 'Photo \u00b7 Amazon.com',  dek: 'Five cheerleaders died in three different incidents five years ago. Monica discovers the killer isn\u2019t who it seemed.' },
-          { id: 'elsatake',   hed: 'Elsa\u2019s Take 5 and Watch: Three Wildly Absurd Films',        author: 'Elsa Daily',                  issue: 'April 2026', ph: 'img-ph--reviews', credit: 'Photo \u00b7 The Railsplitter', dek: 'The editor-in-chief rounds up three films guaranteed to make you question your taste \u2014 and then watch them anyway.' }
-        ]
-      }
-    };
-
-    // ── Render ─────────────────────────────────────────────────────────────
-    function esc(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    function renderSection(slug) {
-      var sec = sections[slug] || sections.sports;
-      var f   = sec.featured;
-      var articles = sec.articles;
-
-      // Page title
-      document.title = sec.title + ' \u2014 The Railsplitter';
-
-      // Section head
-      document.getElementById('secTitle').textContent = sec.title;
-      document.getElementById('secCount').textContent = (articles.length + 1) + ' articles \u00b7 Issue 6, April 2026';
-
-      // Nav active state
-      document.querySelectorAll('[data-sec]').forEach(function(el) {
-        el.classList.toggle('nav__item--active', el.dataset.sec === slug);
-      });
-
-      // Featured
-      document.getElementById('secFeatured').innerHTML =
-        '<a href="article.html?id=' + esc(f.id) + '" class="sec-featured__img">' +
-          '<div class="img-ph ' + esc(f.ph) + '" style="aspect-ratio:4/3;">' +
-            (f.credit ? '<span class="img-ph__credit">' + esc(f.credit) + '</span>' : '') +
-          '</div>' +
-        '</a>' +
-        '<div class="sec-featured__body">' +
-          '<span class="label">' + esc(sec.title) + '</span>' +
-          '<h2 class="sec-featured__hed"><a href="article.html?id=' + esc(f.id) + '">' + esc(f.hed) + '</a></h2>' +
-          '<p class="sec-featured__dek">' + esc(f.dek) + '</p>' +
-          '<p class="sec-featured__meta">By <strong>' + esc(f.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(f.issue) + '</p>' +
-          '<a href="article.html?id=' + esc(f.id) + '" class="read-more">Read full story &rsaquo;</a>' +
-        '</div>';
-
-      // Grid cards
-      var html = '';
-      articles.forEach(function(a) {
-        html +=
-          '<article class="card">' +
-            '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
-              '<div class="img-ph ' + esc(a.ph) + '" style="aspect-ratio:3/2;">' +
-                (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
-              '</div>' +
-            '</a>' +
-            '<span class="label">' + esc(sec.title) + '</span>' +
-            '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.hed) + '</a></h3>' +
-            '<p class="card__meta">By <strong>' + esc(a.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(a.issue) + '</p>' +
-            (a.dek ? '<p class="card__dek">' + esc(a.dek) + '</p>' : '') +
-          '</article>';
-      });
-      document.getElementById('secGrid').innerHTML = html;
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     var params = new URLSearchParams(window.location.search);
-    var slug   = (params.get('s') || 'sports').toLowerCase();
-    renderSection(slug);
+    var slug   = (params.get('s') || '').toLowerCase();
+
+    fetch('content.json').then(function(r) { return r.json(); }).then(function(data) {
+      var sections = data.sections;
+      var articles = data.articles;
+
+      // Build nav
+      var navEl = document.getElementById('mainNav');
+      sections.forEach(function(sec) {
+        var a = document.createElement('a');
+        a.href = 'section.html?s=' + sec.slug;
+        a.className = 'nav__item' + (sec.slug === slug ? ' nav__item--active' : '');
+        a.textContent = sec.title;
+        navEl.appendChild(a);
+      });
+
+      // Footer nav
+      var footerNav = document.getElementById('footerNav');
+      sections.forEach(function(sec) {
+        var a = document.createElement('a');
+        a.href = 'section.html?s=' + sec.slug;
+        a.textContent = sec.title;
+        footerNav.appendChild(a);
+      });
+
+      var sec = sections.find(function(s) { return s.slug === slug; }) || sections[0];
+      var secArticles = articles.filter(function(a) { return a.section === sec.slug && a.published; });
+
+      document.title = sec.title + ' — The Railsplitter';
+      document.getElementById('secTitle').textContent = sec.title;
+      document.getElementById('secCount').textContent = secArticles.length + ' articles · Issue 6, April 2026';
+
+      var featured = secArticles[0];
+      var rest     = secArticles.slice(1);
+
+      if (featured) {
+        document.getElementById('secFeatured').innerHTML =
+          '<a href="article.html?id=' + esc(featured.id) + '" class="sec-featured__img">' +
+            '<div class="img-ph ' + esc(featured.ph) + '" style="aspect-ratio:4/3;">' +
+              (featured.credit ? '<span class="img-ph__credit">' + esc(featured.credit) + '</span>' : '') +
+            '</div>' +
+          '</a>' +
+          '<div class="sec-featured__body">' +
+            '<span class="label">' + esc(sec.title) + '</span>' +
+            '<h2 class="sec-featured__hed"><a href="article.html?id=' + esc(featured.id) + '">' + esc(featured.title) + '</a></h2>' +
+            '<p class="sec-featured__dek">' + esc(featured.dek) + '</p>' +
+            '<p class="sec-featured__meta">By <strong>' + esc(featured.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(featured.issue) + '</p>' +
+            '<a href="article.html?id=' + esc(featured.id) + '" class="read-more">Read full story &rsaquo;</a>' +
+          '</div>';
+      }
+
+      document.getElementById('secGrid').innerHTML = rest.map(function(a) {
+        return '<article class="card">' +
+          '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
+            '<div class="img-ph ' + esc(a.ph) + '" style="aspect-ratio:3/2;">' +
+              (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
+            '</div>' +
+          '</a>' +
+          '<span class="label">' + esc(sec.title) + '</span>' +
+          '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +
+          '<p class="card__meta">By <strong>' + esc(a.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(a.issue) + '</p>' +
+          (a.dek ? '<p class="card__dek">' + esc(a.dek) + '</p>' : '') +
+        '</article>';
+      }).join('');
+    });
   </script>
 
 </body>
