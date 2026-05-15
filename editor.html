@@ -1000,7 +1000,7 @@ App.views.issues = {
   },
 
   renderList: function() {
-    var issues = (App.state.content.issues || []).slice().reverse();
+    var issues = App.state.content.issues || [];
     var articles = App.state.content.articles;
 
     if (!issues.length) {
@@ -1071,8 +1071,9 @@ App.views.issues = {
       if (!title || !date) { alert('Title and date are required.'); return; }
 
       if (!App.state.content.issues) App.state.content.issues = [];
-      var id = 'issue-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      App.state.content.issues.push({ id: id, title: title, date: date, coverArticle: cover || null });
+      var id = 'issue-' + title.toLowerCase().replace(/^issue[\s-]*/i, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (App.issueById(id)) { alert('An issue with this title already exists (ID: ' + id + ').'); return; }
+      App.state.content.issues.unshift({ id: id, title: title, date: date, coverArticle: cover || null });
 
       var saveBtn = document.getElementById('mi-save');
       saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
