@@ -48,7 +48,7 @@
     "sections": {
       "news":     ["educare", "glamclub", "piday"],
       "features": ["petpeeves", "bts", "tigercat"],
-      "opinion":  ["videogames", "chavez"],
+      "opinion":  ["videogames", "chavez", "ocean"],
       "sports":   ["dodgers", "baseball", "wbc"],
       "reviews":  ["neverfall", "mazerunner", "elsatake"]
     }
