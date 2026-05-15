@@ -772,9 +772,7 @@ body {
   .tweaks-fab,
   .tweaks-panel,
   .related,
-  footer.footer,
-  .survey-note,
-  button { display: none !important; }
+  footer.footer { display: none !important; }
 
   body { background: #fff; color: #000; font-size: 11pt; }
 
@@ -785,6 +783,5 @@ body {
   .art-lead-img img { max-width: 100%; height: auto; }
 
   /* section.html */
-  .sec-card .img-ph { display: none; }
-  .sec-card { break-inside: avoid; border-bottom: 1px solid #ccc; padding-bottom: 12pt; margin-bottom: 12pt; }
+  .card { break-inside: avoid; border-bottom: 1px solid #ccc; padding-bottom: 12pt; margin-bottom: 12pt; }
 }
