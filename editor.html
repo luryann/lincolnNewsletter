@@ -137,6 +137,12 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
 .assign-item-info{flex:1;}
 .assign-item-hed{font-size:13px;font-weight:500;}
 .assign-item-meta{font-size:11px;color:#888;margin-top:2px;}
+
+/* ── Photo upload panel ── */
+.photo-panel{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f0ede8;}
+.photo-preview{width:100%;height:90px;object-fit:cover;border-radius:5px;margin-bottom:6px;display:block;}
+.photo-ph-strip{width:100%;height:60px;background:#e8e5e0;border-radius:5px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#aaa;}
+.photo-remove{font-size:11px;color:#b91c1c;cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -243,6 +249,21 @@ var App = {
         return r.json();
       }).then(function(data) {
         App.state.sha = data.content.sha;
+      });
+    },
+
+    uploadFile: function(path, base64content, message) {
+      var url = App.github.apiBase + '/repos/' + App.REPO_OWNER + '/' + App.REPO_NAME + '/contents/' + path;
+      return fetch(url, { headers: App.github.headers() }).then(function(r) {
+        return r.ok ? r.json() : null;
+      }).then(function(existing) {
+        var body = { message: message, content: base64content };
+        if (existing && existing.sha) body.sha = existing.sha;
+        return fetch(url, { method: 'PUT', headers: App.github.headers(), body: JSON.stringify(body) });
+      }).then(function(r) {
+        if (r.status === 401) throw new Error('AUTH_ERROR');
+        if (!r.ok) throw new Error('HTTP_' + r.status);
+        return r.json();
       });
     },
 
@@ -600,6 +621,21 @@ App.views.articleEditor = {
           '<div class="field"><label>Author</label><input type="text" id="f-author" value="' + App.esc(a.author) + '"></div>' +
           '<div class="field"><label>Section</label><select id="f-section">' + sectionOptions + '</select></div>' +
           '<div class="field"><label>Issue / Date</label><input type="text" id="f-issue" value="' + App.esc(a.issue) + '"></div>' +
+          '<div class="photo-panel">' +
+            '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Photo</div>' +
+            '<div id="photoPanel">' +
+              (a.photo
+                ? '<img class="photo-preview" id="photoPreview" src="https://raw.githubusercontent.com/' + App.REPO_OWNER + '/' + App.REPO_NAME + '/main/' + App.esc(a.photo) + '" alt="">' +
+                  '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+                    '<span style="font-size:11px;color:#888;">' + App.esc(a.photo) + '</span>' +
+                    '<button class="photo-remove" id="photoRemove">Remove</button>' +
+                  '</div>'
+                : '<div class="photo-ph-strip">No photo uploaded</div>' +
+                  '<input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">' +
+                  '<button class="btn btn-secondary" id="photoUploadBtn" style="width:100%;font-size:12px;">Upload Photo</button>'
+              ) +
+            '</div>' +
+          '</div>' +
           '<div style="margin-bottom:14px;">' +
             '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Photo Placeholder</div>' +
             '<div class="ph-grid" id="phGrid">' + swatchesHTML + '</div>' +
@@ -669,6 +705,52 @@ App.views.articleEditor = {
       document.querySelectorAll('.ph-swatch').forEach(function(s) { s.classList.remove('selected'); });
       swatch.classList.add('selected');
     });
+
+    var uploadBtn = document.getElementById('photoUploadBtn');
+    var photoInput = document.getElementById('photoInput');
+    var photoRemove = document.getElementById('photoRemove');
+
+    if (uploadBtn && photoInput) {
+      uploadBtn.addEventListener('click', function() { photoInput.click(); });
+      photoInput.addEventListener('change', function() {
+        var file = photoInput.files[0];
+        if (!file) return;
+        var ext = file.name.split('.').pop().toLowerCase();
+        var path = 'photos/' + a.id + '.' + ext;
+
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading…';
+
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          var dataUrl = ev.target.result;
+          var base64  = dataUrl.split(',')[1];
+          App.github.uploadFile(path, base64, 'Photo: upload for ' + a.id).then(function() {
+            a.photo = path;
+            return App.github.saveContent('Photo: set photo for ' + a.title);
+          }).then(function() {
+            App.showSuccess('Photo uploaded.');
+            App.views.articleEditor.render();
+          }).catch(function(err) {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload Photo';
+            App.handleApiError(err);
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (photoRemove) {
+      photoRemove.addEventListener('click', function() {
+        if (!confirm('Remove photo from this article? (The file stays in the repo.)')) return;
+        a.photo = null;
+        App.github.saveContent('Photo: remove from ' + a.title).then(function() {
+          App.showSuccess('Photo removed.');
+          App.views.articleEditor.render();
+        }).catch(App.handleApiError);
+      });
+    }
 
     document.getElementById('statusToggle').addEventListener('click', function() {
       a.published = !a.published;
