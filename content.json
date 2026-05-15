@@ -37,7 +37,8 @@
       "body": "<p>March Madness 2026 has officially begun, bringing the annual excitement of college basketball's biggest tournament along with a new level of attention on brackets. The 68-team NCAA tournament started after Selection Sunday on March 15 and the main games tipped off March 19, beginning three weeks of single elimination matchups that will end with the national championship in early April.</p><p>At the center of the tournament is the bracket, where fans predict the outcome of every game from the first round all the way to the championship. Filling out a bracket has become one of the most popular traditions in sports, even though predicting every game correctly is nearly impossible. A perfect bracket requires picking all 63 games correctly, something that has never been done, and the odds are often compared to winning the lottery or being struck by lightning.</p><blockquote><p>\\\"Expect the unexpected.\\\" The odds of a perfect bracket are 1 in 9.2 quintillion ÃÂ¢ÃÂÃÂ yet nearly 30% of Lincoln students still believe it could happen.</p></blockquote><p>This year, brackets are getting more attention than ever because of a massive prize. Prediction market platform Kalshi is offering one billion dollars to anyone who can create a perfect bracket for the 2026 tournament. The contest is free to enter, limited to one bracket per person, and requires correctly predicting all 63 games. If no one achieves a perfect bracket, the best overall entry will still win one million dollars.</p><h3>What Lincoln Students Think</h3><p>A survey conducted by the Railsplitter highlights just how unlikely most people believe a perfect bracket really is. Out of 73 responses, 52 Lincoln students (71.2%) said they do not believe a perfect bracket will be achieved in their lifetime, while only 21 respondents (28.8%) said they think it is possible.</p><h3>Why March Madness Endures</h3><p>Even so, the fact that nearly 30% of respondents still believe it could happen shows the optimism and excitement that define March Madness. With millions of brackets filled out each year and growing incentives like the billion-dollar prize, fans continue to hope that someday, someone might finally beat the odds.</p><p>As the tournament's saying goes: expect the unexpected.</p>",
       "ph": "img-ph--sports",
       "credit": "Photo ÃÂÃÂ· NCAA.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "heatwave",
@@ -49,7 +50,8 @@
       "body": "",
       "ph": "img-ph--features",
       "credit": "Photo ÃÂÃÂ· The Railsplitter",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "xbox",
@@ -61,7 +63,8 @@
       "body": "",
       "ph": "img-ph--features",
       "credit": "Photo ÃÂÃÂ· Microsoft",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "videogames",
@@ -73,7 +76,8 @@
       "body": "",
       "ph": "img-ph--opinion",
       "credit": "Photo ÃÂÃÂ· FN.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "educare",
@@ -85,7 +89,8 @@
       "body": "",
       "ph": "img-ph--news",
       "credit": "Photo ÃÂÃÂ· Megan Nim",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "glamclub",
@@ -97,7 +102,8 @@
       "body": "",
       "ph": "img-ph--news",
       "credit": "Photo ÃÂÃÂ· Aracely Rodriguez",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "piday",
@@ -109,7 +115,8 @@
       "body": "",
       "ph": "img-ph--news",
       "credit": "Photo ÃÂÃÂ· Tiffany Nguyen",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "spark",
@@ -121,7 +128,8 @@
       "body": "",
       "ph": "img-ph--news",
       "credit": "Photo ÃÂÃÂ· The Railsplitter",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "petpeeves",
@@ -133,7 +141,8 @@
       "body": "",
       "ph": "img-ph--features",
       "credit": "Photo ÃÂÃÂ· The Railsplitter",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "bts",
@@ -157,7 +166,8 @@
       "body": "",
       "ph": "img-ph--features",
       "credit": "Photo ÃÂÃÂ· The Railsplitter",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "nancyguth",
@@ -169,7 +179,8 @@
       "body": "",
       "ph": "img-ph--features",
       "credit": "Photo ÃÂÃÂ· EW.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "chavez",
@@ -181,7 +192,8 @@
       "body": "",
       "ph": "img-ph--opinion",
       "credit": "",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "ocean",
@@ -193,7 +205,8 @@
       "body": "",
       "ph": "img-ph--opinion",
       "credit": "Photo ÃÂÃÂ· 4Ocean",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "dodgers",
@@ -205,7 +218,8 @@
       "body": "",
       "ph": "img-ph--sports",
       "credit": "Photo ÃÂÃÂ· MLB.com",
-      "published": true
+      "published": true,
+      "issueId": "issue-7"
     },
     {
       "id": "baseball",
