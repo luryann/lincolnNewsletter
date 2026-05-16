@@ -73,6 +73,13 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#C85500;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* ── Push bar ── */
+#pushBar{background:#292622;color:#e0ddd8;padding:6px 24px;display:none;align-items:center;justify-content:space-between;font-size:12px;flex-shrink:0;border-bottom:1px solid #111;}
+#pushBar .push-label{display:flex;align-items:center;gap:8px;}
+#pushBar .push-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;}
+.btn-push{background:#C85500;color:#fff;padding:4px 14px;border-radius:4px;font-size:12px;font-weight:600;border:none;cursor:pointer;}
+.btn-push:disabled{opacity:.5;cursor:not-allowed;}
+
 /* ── Article editor ── */
 .editor-grid{display:grid;grid-template-columns:1fr 280px;gap:20px;}
 .richtext-wrap{border:1px solid #ddd;border-radius:5px;overflow:hidden;background:#fafaf7;}
@@ -193,6 +200,10 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
       <div class="topbar-title" id="topbarTitle">Loading&hellip;</div>
       <div class="topbar-actions" id="topbarActions"></div>
     </div>
+    <div id="pushBar">
+      <div class="push-label"><div class="push-dot"></div><span id="pushCount"></span></div>
+      <button class="btn-push" id="pushAllBtn" onclick="App.pushAll()">Push all →</button>
+    </div>
     <div class="content-area" id="contentArea">
       <div class="spinner"></div>
     </div>
@@ -211,7 +222,39 @@ var App = {
     sha:     null,
     content: null,
     view:    'articles',
-    articleId: null
+    articleId: null,
+    pendingChanges: []
+  },
+
+  markDirty: function(msg) {
+    App.state.pendingChanges.push(msg);
+    App.updatePushBar();
+  },
+
+  updatePushBar: function() {
+    var bar = document.getElementById('pushBar');
+    if (!bar) return;
+    var n = App.state.pendingChanges.length;
+    if (n === 0) { bar.style.display = 'none'; return; }
+    bar.style.display = 'flex';
+    document.getElementById('pushCount').textContent =
+      n + ' unsaved change' + (n === 1 ? '' : 's') + ' — push to publish';
+  },
+
+  pushAll: function() {
+    var changes = App.state.pendingChanges;
+    if (!changes.length) return;
+    var btn = document.getElementById('pushAllBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Pushing…'; }
+    var summary = changes.length === 1
+      ? changes[0]
+      : changes[0] + ' (and ' + (changes.length - 1) + ' more change' + (changes.length > 2 ? 's' : '') + ')';
+    App.github.saveContent(summary).then(function() {
+      App.showSuccess('Pushed ' + changes.length + ' change' + (changes.length === 1 ? '' : 's') + '.');
+    }).catch(function(err) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Push all →'; }
+      App.handleApiError(err);
+    });
   },
 
   // ── GitHub API ────────────────────────────────────────────────────────
@@ -255,6 +298,8 @@ var App = {
         return r.json();
       }).then(function(data) {
         App.state.sha = data.content.sha;
+        App.state.pendingChanges = [];
+        App.updatePushBar();
       });
     },
 
@@ -825,8 +870,7 @@ App.views.articleEditor = {
 App.views.homepage = {
   render: function() {
     document.getElementById('topbarTitle').textContent = 'Homepage Layout';
-    document.getElementById('topbarActions').innerHTML =
-      '<span style="font-size:12px;color:#aaa;">Each change commits to GitHub</span>';
+    document.getElementById('topbarActions').innerHTML = '';
     App.views.homepage.renderContent();
   },
 
@@ -910,10 +954,8 @@ App.views.homepage = {
           if (!App.state.content.homepage.sections[sec]) App.state.content.homepage.sections[sec] = [];
           App.state.content.homepage.sections[sec][idx] = chosenId;
         }
-        App.github.saveContent('Homepage: update slot').then(function() {
-          App.views.homepage.renderContent();
-          App.showSuccess('Homepage updated.');
-        }).catch(App.handleApiError);
+        App.markDirty('Homepage: update slot');
+        App.views.homepage.renderContent();
       });
     };
   },
@@ -1015,10 +1057,8 @@ App.views.sections = {
         var sec = App.sectionBySlug(slug);
         if (!sec || input.value.trim() === sec.title) return;
         sec.title = input.value.trim();
-        App.github.saveContent('Rename section: ' + sec.title).then(function() {
-          App.showSuccess('Section renamed.');
-          App.views.sections.renderList();
-        }).catch(App.handleApiError);
+        App.markDirty('Rename section: ' + sec.title);
+        App.views.sections.renderList();
       });
     });
 
@@ -1027,9 +1067,8 @@ App.views.sections = {
         var sec = App.sectionBySlug(dot.dataset.slug);
         if (!sec) return;
         sec.ph = dot.dataset.ph;
-        App.github.saveContent('Section placeholder: ' + sec.title).then(function() {
-          App.views.sections.renderList();
-        }).catch(App.handleApiError);
+        App.markDirty('Section placeholder: ' + sec.title);
+        App.views.sections.renderList();
       });
     });
 
@@ -1045,10 +1084,9 @@ App.views.sections = {
         if (!confirm('Delete section "' + sec.title + '"? This cannot be undone.')) return;
         App.state.content.sections = App.state.content.sections.filter(function(s) { return s.slug !== slug; });
         delete App.state.content.homepage.sections[slug];
-        App.github.saveContent('Delete section: ' + sec.title).then(function() {
-          App.showSuccess('Section deleted.');
-          App.views.sections.renderList();
-        }).catch(App.handleApiError);
+        App.markDirty('Delete section: ' + sec.title);
+        App.showSuccess('Section deleted (not yet pushed).');
+        App.views.sections.renderList();
       });
     });
   },
@@ -1086,12 +1124,10 @@ App.views.sections = {
 
       App.state.content.sections.push({ slug: slug, title: title, ph: 'img-ph--default' });
       App.state.content.homepage.sections[slug] = [];
-
-      App.github.saveContent('Add section: ' + title).then(function() {
-        backdrop.remove();
-        App.showSuccess('Section "' + title + '" added.');
-        App.views.sections.renderList();
-      }).catch(App.handleApiError);
+      App.markDirty('Add section: ' + title);
+      backdrop.remove();
+      App.showSuccess('Section "' + title + '" added (not yet pushed).');
+      App.views.sections.renderList();
     });
   }
 };
@@ -1162,11 +1198,9 @@ App.views.issues = {
         if (!confirm(msg)) return;
         App.state.content.issues = App.state.content.issues.filter(function(i){ return i.id !== issue.id; });
         App.state.content.articles.forEach(function(a){ if (a.issueId === issue.id) a.issueId = null; });
-        btn.disabled = true; btn.textContent = 'Deleting…';
-        App.github.saveContent('Issues: delete ' + issue.title).then(function() {
-          App.showSuccess('Issue deleted.');
-          App.views.issues.renderList();
-        }).catch(App.handleApiError);
+        App.markDirty('Issues: delete ' + issue.title);
+        App.showSuccess('Issue deleted (not yet pushed).');
+        App.views.issues.renderList();
       });
     });
   },
@@ -1203,17 +1237,10 @@ App.views.issues = {
       var id = 'issue-' + title.toLowerCase().replace(/^issue[\s-]*/i, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       if (App.issueById(id)) { alert('An issue with this title already exists (ID: ' + id + ').'); return; }
       App.state.content.issues.unshift({ id: id, title: title, date: date, coverArticle: cover || null });
-
-      var saveBtn = document.getElementById('mi-save');
-      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
-      App.github.saveContent('Issues: create ' + title).then(function() {
-        backdrop.remove();
-        App.showSuccess('Issue created.');
-        App.views.issues.renderList();
-      }).catch(function(err) {
-        saveBtn.disabled = false; saveBtn.textContent = 'Create Issue';
-        App.handleApiError(err);
-      });
+      App.markDirty('Issues: create ' + title);
+      backdrop.remove();
+      App.showSuccess('Issue created (not yet pushed).');
+      App.views.issues.renderList();
     });
   },
 
@@ -1272,16 +1299,10 @@ App.views.issues = {
         }
       });
 
-      var saveBtn = document.getElementById('ei-save');
-      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
-      App.github.saveContent('Issues: update ' + issue.title).then(function() {
-        backdrop.remove();
-        App.showSuccess('Issue saved.');
-        App.views.issues.renderList();
-      }).catch(function(err) {
-        saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
-        App.handleApiError(err);
-      });
+      App.markDirty('Issues: update ' + issue.title);
+      backdrop.remove();
+      App.showSuccess('Issue saved (not yet pushed).');
+      App.views.issues.renderList();
     });
   }
 };
