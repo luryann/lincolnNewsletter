@@ -122,3 +122,80 @@ def cluster_into_blocks(ocr_data: dict) -> list[dict]:
         })
 
     return sorted(result, key=lambda b: b['top'])
+
+
+_BYLINE_PREFIXES = ('BY ', 'BY\n', 'WRITTEN BY')
+
+
+def classify_blocks(blocks: list[dict], page_height: int) -> list[dict]:
+    """Adds a 'role' key to each block.
+    Roles: section_banner, headline, dek, byline, body.
+    """
+    if not blocks:
+        return []
+
+    max_h = max(b['avg_word_height'] for b in blocks)
+
+    classified = []
+    for b in blocks:
+        block = dict(b)
+        rel_h = b['avg_word_height'] / max_h if max_h > 0 else 0
+        top_frac = b['top'] / page_height if page_height > 0 else 0
+        words = b['text'].split()
+        upper = b['text'].upper()
+
+        if rel_h > 0.55 and top_frac < 0.12 and is_known_section(b['text']):
+            block['role'] = 'section_banner'
+        elif rel_h > 0.55:
+            block['role'] = 'headline'
+        elif any(upper.startswith(p) for p in _BYLINE_PREFIXES) and len(words) <= 8:
+            block['role'] = 'byline'
+        elif rel_h > 0.28 and len(words) <= 30:
+            block['role'] = 'dek'
+        else:
+            block['role'] = 'body'
+
+        classified.append(block)
+
+    return classified
+
+
+def segment_articles(classified_blocks: list[dict]) -> list[dict]:
+    """Groups classified blocks into raw article dicts."""
+    articles: list[dict] = []
+    current: dict | None = None
+    current_section = 'news'
+
+    for block in classified_blocks:
+        role = block['role']
+
+        if role == 'section_banner':
+            if not is_known_section(block['text']):
+                print(f'  Unknown section "{block["text"]}" — defaulting to news')
+            current_section = detect_section(block['text'])
+        elif role == 'headline':
+            if current is not None:
+                articles.append(current)
+            current = {
+                'headline': block['text'],
+                'headline_conf': block['avg_conf'],
+                'dek': '',
+                'dek_conf': 0.0,
+                'byline': '',
+                'body_texts': [],
+                'body_confs': [],
+                'section': current_section,
+            }
+        elif role == 'dek' and current is not None and not current['dek']:
+            current['dek'] = block['text']
+            current['dek_conf'] = block['avg_conf']
+        elif role == 'byline' and current is not None and not current['byline']:
+            current['byline'] = parse_byline(block['text'])
+        elif role == 'body' and current is not None:
+            current['body_texts'].append(block['text'])
+            current['body_confs'].append(block['avg_conf'])
+
+    if current is not None:
+        articles.append(current)
+
+    return articles

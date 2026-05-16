@@ -169,3 +169,87 @@ def test_cluster_sorted_by_top():
 def test_cluster_empty_data_returns_empty():
     data = _make_ocr([])
     assert cluster_into_blocks(data) == []
+
+from extract import classify_blocks, segment_articles
+
+def _block(text, avg_word_height, top, avg_conf=85, left=10):
+    return {
+        'block_num': 1,
+        'text': text,
+        'avg_word_height': avg_word_height,
+        'avg_conf': avg_conf,
+        'left': left,
+        'top': top,
+        'width': 200,
+        'height': 30,
+    }
+
+PAGE_HEIGHT = 3300  # 11 inches at 300 DPI
+
+# classify_blocks
+
+def test_classify_headline_large_font():
+    blocks = [
+        _block('SPORTS', 80, 30),          # tallest at top → section_banner
+        _block('Tiger Baseball Wins', 75, 200),  # headline
+        _block('Body text here', 20, 400), # body
+    ]
+    classified = classify_blocks(blocks, PAGE_HEIGHT)
+    roles = {b['text']: b['role'] for b in classified}
+    assert roles['SPORTS'] == 'section_banner'
+    assert roles['Tiger Baseball Wins'] == 'headline'
+    assert roles['Body text here'] == 'body'
+
+def test_classify_dek_medium_font():
+    blocks = [
+        _block('Big Headline', 70, 200),
+        _block('A sub-headline description here', 30, 280),
+        _block('Body text body text', 18, 400),
+    ]
+    classified = classify_blocks(blocks, PAGE_HEIGHT)
+    roles = {b['text']: b['role'] for b in classified}
+    assert roles['A sub-headline description here'] == 'dek'
+
+def test_classify_byline_by_prefix():
+    blocks = [
+        _block('Big Headline', 70, 200),
+        _block('By Jane Doe', 20, 310),
+        _block('Body text here', 18, 400),
+    ]
+    classified = classify_blocks(blocks, PAGE_HEIGHT)
+    roles = {b['text']: b['role'] for b in classified}
+    assert roles['By Jane Doe'] == 'byline'
+
+def test_classify_empty_returns_empty():
+    assert classify_blocks([], PAGE_HEIGHT) == []
+
+# segment_articles
+
+def test_segment_groups_by_headline():
+    classified = [
+        {'text': 'SPORTS', 'role': 'section_banner', 'avg_conf': 90, 'top': 10},
+        {'text': 'Tiger Baseball', 'role': 'headline', 'avg_conf': 88, 'top': 100},
+        {'text': 'By Ryan Lu', 'role': 'byline', 'avg_conf': 85, 'top': 200},
+        {'text': 'Body text one.', 'role': 'body', 'avg_conf': 82, 'top': 300},
+        {'text': 'Volleyball Recap', 'role': 'headline', 'avg_conf': 87, 'top': 400},
+        {'text': 'Body text two.', 'role': 'body', 'avg_conf': 81, 'top': 500},
+    ]
+    articles = segment_articles(classified)
+    assert len(articles) == 2
+    assert articles[0]['headline'] == 'Tiger Baseball'
+    assert articles[0]['section'] == 'sports'
+    assert articles[0]['byline'] == 'Ryan Lu'
+    assert 'Body text one.' in articles[0]['body_texts']
+    assert articles[1]['headline'] == 'Volleyball Recap'
+
+def test_segment_propagates_section_banner():
+    classified = [
+        {'text': 'OPINION', 'role': 'section_banner', 'avg_conf': 90, 'top': 10},
+        {'text': 'My Hot Take', 'role': 'headline', 'avg_conf': 88, 'top': 100},
+        {'text': 'Body.', 'role': 'body', 'avg_conf': 80, 'top': 200},
+    ]
+    articles = segment_articles(classified)
+    assert articles[0]['section'] == 'opinion'
+
+def test_segment_empty_returns_empty():
+    assert segment_articles([]) == []
