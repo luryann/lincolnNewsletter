@@ -324,3 +324,73 @@ def test_build_article_returns_avg_conf():
     raw = _raw_article(headline_conf=85.0, body_confs=[82.0, 78.0])
     _, avg_conf = build_article(raw, 'Issue 6, April 2026', 'issue-6')
     assert abs(avg_conf - 81.67) < 0.1
+
+# merge_into_content_json
+
+import json
+import tempfile
+from extract import merge_into_content_json
+
+def _make_content_json(tmp_path, articles=None, issues=None):
+    data = {
+        'sections': [{'slug': 'news', 'title': 'Lincoln News', 'ph': 'img-ph--news'}],
+        'issues': issues or [],
+        'articles': articles or [],
+    }
+    p = tmp_path / 'content.json'
+    p.write_text(json.dumps(data))
+    return p
+
+def _article(id, section='news'):
+    return {'id': id, 'title': id, 'author': 'Test', 'section': section,
+            'issue': 'Issue 1', 'issueId': 'issue-1', 'dek': '', 'body': '',
+            'ph': f'img-ph--{section}', 'credit': '', 'photo': None, 'published': True}
+
+def _issue(id, number='1'):
+    return {'id': id, 'title': f'Issue {number}', 'date': 'Jan 2025', 'coverArticle': 'first-article'}
+
+def test_merge_adds_new_articles(tmp_path):
+    p = _make_content_json(tmp_path)
+    articles_added, _ = merge_into_content_json([_article('new-article')], [], p)
+    assert articles_added == 1
+    data = json.loads(p.read_text())
+    assert any(a['id'] == 'new-article' for a in data['articles'])
+
+def test_merge_skips_duplicate_articles(tmp_path):
+    existing = _article('existing-article')
+    p = _make_content_json(tmp_path, articles=[existing])
+    articles_added, _ = merge_into_content_json([_article('existing-article')], [], p)
+    assert articles_added == 0
+    data = json.loads(p.read_text())
+    assert sum(1 for a in data['articles'] if a['id'] == 'existing-article') == 1
+
+def test_merge_adds_new_issues(tmp_path):
+    p = _make_content_json(tmp_path)
+    _, issues_added = merge_into_content_json([], [_issue('issue-3', '3')], p)
+    assert issues_added == 1
+    data = json.loads(p.read_text())
+    assert any(i['id'] == 'issue-3' for i in data['issues'])
+
+def test_merge_skips_duplicate_issues(tmp_path):
+    p = _make_content_json(tmp_path, issues=[_issue('issue-3', '3')])
+    _, issues_added = merge_into_content_json([], [_issue('issue-3', '3')], p)
+    assert issues_added == 0
+
+def test_merge_idempotent(tmp_path):
+    p = _make_content_json(tmp_path)
+    article = _article('my-article')
+    issue = _issue('issue-1')
+    merge_into_content_json([article], [issue], p)
+    merge_into_content_json([article], [issue], p)
+    data = json.loads(p.read_text())
+    assert sum(1 for a in data['articles'] if a['id'] == 'my-article') == 1
+    assert sum(1 for i in data['issues'] if i['id'] == 'issue-1') == 1
+
+def test_merge_preserves_existing_data(tmp_path):
+    existing = _article('old-article')
+    p = _make_content_json(tmp_path, articles=[existing])
+    merge_into_content_json([_article('new-article')], [], p)
+    data = json.loads(p.read_text())
+    ids = [a['id'] for a in data['articles']]
+    assert 'old-article' in ids
+    assert 'new-article' in ids

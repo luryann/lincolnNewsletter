@@ -229,3 +229,40 @@ def build_article(raw: dict, issue_str: str, issue_id: str) -> tuple[dict, float
         'published': avg_conf >= 60,
     }
     return article, avg_conf
+
+
+def merge_into_content_json(
+    new_articles: list[dict],
+    new_issues: list[dict],
+    content_path: Path,
+) -> tuple[int, int]:
+    """Merges articles and issues into content.json idempotently.
+    Returns (articles_added, issues_added).
+    """
+    data = json.loads(content_path.read_text(encoding='utf-8'))
+
+    existing_article_ids = {a['id'] for a in data['articles']}
+    existing_issue_ids = {i['id'] for i in data['issues']}
+
+    articles_added = 0
+    for article in new_articles:
+        if article['id'] in existing_article_ids:
+            print(f'  Skipping duplicate: "{article["id"]}"')
+            continue
+        data['articles'].append(article)
+        existing_article_ids.add(article['id'])
+        articles_added += 1
+
+    issues_added = 0
+    for issue in new_issues:
+        if issue['id'] in existing_issue_ids:
+            continue
+        data['issues'].append(issue)
+        existing_issue_ids.add(issue['id'])
+        issues_added += 1
+
+    content_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False),
+        encoding='utf-8',
+    )
+    return articles_added, issues_added
