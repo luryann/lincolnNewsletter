@@ -133,7 +133,7 @@ def cluster_into_blocks(ocr_data: dict) -> list[dict]:
     return sorted(result, key=lambda b: b['top'])
 
 
-_BYLINE_PREFIXES = ('BY ', 'BY\n', 'WRITTEN BY')
+_BYLINE_PREFIXES = ('BY ', 'WRITTEN BY')
 
 
 def classify_blocks(blocks: list[dict], page_height: int) -> list[dict]:
@@ -179,8 +179,6 @@ def segment_articles(classified_blocks: list[dict]) -> list[dict]:
         role = block['role']
 
         if role == 'section_banner':
-            if not is_known_section(block['text']):
-                print(f'  Unknown section "{block["text"]}" — defaulting to news')
             current_section = detect_section(block['text'])
         elif role == 'headline':
             if current is not None:
@@ -330,11 +328,14 @@ def process_pdf(pdf_path: Path) -> dict:
             'coverArticle': built_articles[0]['id'],
         }]
 
+    existing_ids = {a['id'] for a in json.loads(CONTENT_JSON.read_text(encoding='utf-8'))['articles']}
+    new_articles = [a for a in built_articles if a['id'] not in existing_ids]
+
     articles_added, issues_added = merge_into_content_json(
         built_articles, new_issues, CONTENT_JSON
     )
 
-    published = sum(1 for a in built_articles if a['published'])
+    published = sum(1 for a in new_articles if a['published'])
     return {
         'issue_str': issue_str,
         'pages': len(images),
