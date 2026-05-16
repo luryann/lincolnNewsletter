@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Section — The Railsplitter</title>
+  <title>Archive — The Railsplitter</title>
+  <meta name="description" content="Browse all issues of The Railsplitter, Lincoln High School's student newspaper.">
+  <meta property="og:title" content="Archive — The Railsplitter">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -29,16 +31,16 @@
   </header>
 
   <!-- Navigation -->
-  <nav class="nav" id="mainNav">
+  <nav class="nav">
     <div class="nav__inner">
       <a href="index.html" class="nav__item">Home</a>
-      <a href="section.html?s=news"     class="nav__item" data-sec="news">Lincoln News</a>
-      <a href="section.html?s=features" class="nav__item" data-sec="features">Features</a>
-      <a href="section.html?s=opinion"  class="nav__item" data-sec="opinion">Opinion</a>
-      <a href="section.html?s=sports"   class="nav__item" data-sec="sports">Sports</a>
-      <a href="section.html?s=reviews"  class="nav__item" data-sec="reviews">Reviews</a>
-      <a href="about.html"   class="nav__item">About</a>
-      <a href="archive.html" class="nav__item">Archive</a>
+      <a href="section.html?s=news" class="nav__item">Lincoln News</a>
+      <a href="section.html?s=features" class="nav__item">Features</a>
+      <a href="section.html?s=opinion" class="nav__item">Opinion</a>
+      <a href="section.html?s=sports" class="nav__item">Sports</a>
+      <a href="section.html?s=reviews" class="nav__item">Reviews</a>
+      <a href="about.html" class="nav__item">About</a>
+      <a href="archive.html" class="nav__item nav__item--active">Archive</a>
       <span class="nav__issue" id="navIssue"></span>
       <button class="search-btn" id="searchBtn" aria-label="Search" title="Search (&#8984;K)">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4" stroke-linecap="round"/></svg>
@@ -46,16 +48,16 @@
     </div>
   </nav>
 
-  <!-- Section Content -->
+  <!-- Archive Content -->
   <main id="main-content">
     <div class="wrap">
-      <div class="sec-page-head" id="secPageHead">
-        <h1 class="sec-page-title" id="secTitle">Loading&hellip;</h1>
-        <div class="sec-page-bar"></div>
-        <p class="sec-page-count" id="secCount"></p>
+      <div class="archive-head">
+        <h1 class="archive-title">Issue Archive</h1>
+        <p class="archive-sub" id="archiveSub">All issues of The Railsplitter</p>
       </div>
-      <div class="sec-featured" id="secFeatured"></div>
-      <div class="grid-3" id="secGrid"></div>
+      <div class="archive-grid" id="issueGrid">
+        <p style="color:var(--c-muted); font-family:var(--f-sans); font-size:14px; padding:40px 0;">Loading&hellip;</p>
+      </div>
     </div>
   </main>
 
@@ -130,17 +132,15 @@
   </div>
 
   <script>
-    var SECTION_TITLES = { news:'Lincoln News', features:'Features', opinion:'Opinion', sports:'Sports', reviews:'Reviews' };
-    var slug = (new URLSearchParams(window.location.search).get('s') || 'news').toLowerCase();
-
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    var COVER_COLORS = ['#C8550020','#1a3a5c20','#2d5a2720','#9b1c1c20','#5a3d1a20','#1a4a5a20'];
+
     fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
-      var articles = (data.articles || []).filter(function(a){ return a.published !== false && a.section === slug; });
       var issues = data.issues || [];
-      var secTitle = SECTION_TITLES[slug] || slug;
+      var articles = data.articles || [];
 
       // Nav issue badge
       if (issues.length) {
@@ -149,63 +149,60 @@
         document.getElementById('navIssue').textContent = latest.title + (shortDate ? ' · ' + shortDate : '');
       }
 
-      // Nav active state
-      document.querySelectorAll('[data-sec]').forEach(function(el) {
-        el.classList.toggle('nav__item--active', el.dataset.sec === slug);
-      });
+      var grid = document.getElementById('issueGrid');
 
-      // Page title & meta
-      document.title = secTitle + ' — The Railsplitter';
-      document.querySelector('meta[property="og:title"]') && (document.querySelector('meta[property="og:title"]').content = secTitle + ' — The Railsplitter');
-
-      document.getElementById('secTitle').textContent = secTitle;
-      document.getElementById('secCount').textContent = articles.length + ' article' + (articles.length !== 1 ? 's' : '');
-
-      if (!articles.length) {
-        document.getElementById('secFeatured').innerHTML = '';
-        document.getElementById('secGrid').innerHTML =
-          '<p style="color:var(--c-muted); font-family:var(--f-sans); font-size:14px; padding:40px 0; grid-column:1/-1;">No articles in this section yet.</p>';
+      if (!issues.length) {
+        grid.innerHTML = '<p style="color:var(--c-muted); font-family:var(--f-sans); font-size:14px; padding:40px 0;">No issues published yet.</p>';
+        document.getElementById('archiveSub').textContent = '0 issues';
         return;
       }
 
-      var f = articles[0];
-      var ph = 'img-ph--' + slug;
+      document.getElementById('archiveSub').textContent = issues.length + ' issue' + (issues.length !== 1 ? 's' : '');
 
-      // Featured
-      document.getElementById('secFeatured').innerHTML =
-        '<a href="article.html?id=' + esc(f.id) + '" class="sec-featured__img">' +
-          '<div class="img-ph ' + esc(ph) + '" style="aspect-ratio:4/3;">' +
-            (f.credit ? '<span class="img-ph__credit">' + esc(f.credit) + '</span>' : '') +
-          '</div>' +
-        '</a>' +
-        '<div class="sec-featured__body">' +
-          '<span class="label">' + esc(secTitle) + '</span>' +
-          '<h2 class="sec-featured__hed"><a href="article.html?id=' + esc(f.id) + '">' + esc(f.title) + '</a></h2>' +
-          (f.dek ? '<p class="sec-featured__dek">' + esc(f.dek) + '</p>' : '') +
-          '<p class="sec-featured__meta">By <strong>' + esc(f.author) + '</strong>' + (f.issue ? ' &nbsp;&middot;&nbsp; ' + esc(f.issue) : '') + '</p>' +
-          '<a href="article.html?id=' + esc(f.id) + '" class="read-more">Read full story &rsaquo;</a>' +
-        '</div>';
-
-      // Grid
+      // Render newest first
+      var reversed = issues.slice().reverse();
       var html = '';
-      articles.slice(1).forEach(function(a) {
+
+      reversed.forEach(function(issue, i) {
+        var issueArticles = articles.filter(function(a){ return a.issueId === issue.id && a.published !== false; });
+        var numStr = issue.id.replace(/\D/g,'') || (issues.length - i);
+        var coverColor = COVER_COLORS[i % COVER_COLORS.length];
+
+        // Top headlines: cover article first, then up to 2 more
+        var coverArt = issue.coverArticle ? articles.find(function(a){ return a.id === issue.coverArticle; }) : null;
+        var highlights = coverArt ? [coverArt] : [];
+        issueArticles.forEach(function(a) {
+          if (highlights.length < 3 && a.id !== (coverArt && coverArt.id)) highlights.push(a);
+        });
+
+        var hlHTML = '';
+        highlights.slice(0,3).forEach(function(a) {
+          hlHTML += '<p class="issue-card__hl"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></p>';
+        });
+        if (!hlHTML) hlHTML = '<p class="issue-card__hl" style="color:var(--c-muted); font-style:italic;">No articles yet</p>';
+
+        var coverHref = coverArt ? 'article.html?id=' + esc(coverArt.id) : 'index.html';
+
         html +=
-          '<article class="card">' +
-            '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
-              '<div class="img-ph ' + esc(ph) + '" style="aspect-ratio:3/2;">' +
-                (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
-              '</div>' +
+          '<article class="issue-card">' +
+            '<a href="' + coverHref + '" class="issue-card__cover" style="background:var(--c-surface);">' +
+              '<span class="issue-card__bg-num">' + esc(numStr) + '</span>' +
+              '<div class="issue-card__wordmark">The<br>Railsplitter</div>' +
+              '<hr class="issue-card__rule">' +
+              '<span class="issue-card__badge">' + esc(issue.title) + (issue.date ? ' &middot; ' + esc(issue.date) : '') + '</span>' +
             '</a>' +
-            '<span class="label">' + esc(secTitle) + '</span>' +
-            '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +
-            '<p class="card__meta">By <strong>' + esc(a.author) + '</strong>' + (a.issue ? ' &nbsp;&middot;&nbsp; ' + esc(a.issue) : '') + '</p>' +
-            (a.dek ? '<p class="card__dek">' + esc(a.dek) + '</p>' : '') +
+            '<div class="issue-card__body">' +
+              '<span class="issue-card__label">Top Stories</span>' +
+              '<div class="issue-card__hls">' + hlHTML + '</div>' +
+              '<p class="issue-card__count">' + issueArticles.length + ' article' + (issueArticles.length !== 1 ? 's' : '') + (issue.date ? ' &nbsp;&middot;&nbsp; ' + esc(issue.date) : '') + '</p>' +
+              '<a href="search.html?q=' + encodeURIComponent(issue.title) + '" class="issue-card__link">Browse this issue &rsaquo;</a>' +
+            '</div>' +
           '</article>';
       });
-      document.getElementById('secGrid').innerHTML = html;
+
+      grid.innerHTML = html;
     }).catch(function() {
-      document.getElementById('secTitle').textContent = 'Error';
-      document.getElementById('secGrid').innerHTML = '<p style="color:var(--c-muted);">Could not load content. Run a local server to view this page.</p>';
+      document.getElementById('issueGrid').innerHTML = '<p style="color:var(--c-muted);">Could not load issues. Run a local server to view this page.</p>';
     });
 
     var btt = document.getElementById('backToTop');
@@ -215,12 +212,12 @@
     var sBtn = document.getElementById('searchBtn');
     var sOverlay = document.getElementById('searchOverlay');
     var sClose = document.getElementById('searchClose');
-    var sInputEl = document.getElementById('searchInput');
-    sBtn.addEventListener('click', function() { sOverlay.classList.add('open'); setTimeout(function(){ sInputEl.focus(); }, 50); });
+    var sInput = document.getElementById('searchInput');
+    sBtn.addEventListener('click', function() { sOverlay.classList.add('open'); setTimeout(function(){ sInput.focus(); }, 50); });
     sClose.addEventListener('click', function() { sOverlay.classList.remove('open'); });
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') sOverlay.classList.remove('open');
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); sOverlay.classList.add('open'); setTimeout(function(){ sInputEl.focus(); }, 50); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); sOverlay.classList.add('open'); setTimeout(function(){ sInput.focus(); }, 50); }
     });
   </script>
 </body>

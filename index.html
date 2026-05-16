@@ -4,13 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Railsplitter — Lincoln High School</title>
+  <meta name="description" content="The Railsplitter is Lincoln High School's official student newspaper — covering campus life, sports, opinion, and more.">
+  <meta property="og:title" content="The Railsplitter — Lincoln High School">
+  <meta property="og:description" content="Official student newspaper of Lincoln High School, Los Angeles, CA.">
+  <meta property="og:type" content="website">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <!-- Breaking News (hidden by default; set via JS if needed) -->
+  <div class="breaking" id="breakingBanner" role="alert" style="display:none;">
+    <span class="breaking__badge">Breaking</span>
+    <span class="breaking__text" id="breakingText"></span>
+    <button class="breaking__close" id="breakingClose" aria-label="Dismiss">&times;</button>
+  </div>
 
   <!-- Top Bar -->
   <div class="top-bar">
-    <div class="top-bar__left">Wednesday, May 14, 2026 &nbsp;&middot;&nbsp; Lincoln High School &nbsp;&middot;&nbsp; Los Angeles, CA 90031</div>
+    <div class="top-bar__left">Lincoln High School &nbsp;&middot;&nbsp; Los Angeles, CA 90031</div>
     <div class="top-bar__right">Follow us: <a href="https://instagram.com/lhsjournalism2020" target="_blank">@lhsjournalism2020</a></div>
   </div>
 
@@ -20,8 +32,6 @@
       <div class="masthead">
         <hr class="masthead__rule-top">
         <span class="masthead__wordmark">The Railsplitter</span>
-        <!-- temp spacing issue -->
-        <br> 
         <span class="masthead__tagline">Official Student Publication &nbsp;&middot;&nbsp; Volume 6 &nbsp;&middot;&nbsp; Lincoln High School</span>
         <hr class="masthead__rule-bottom">
       </div>
@@ -30,15 +40,28 @@
 
   <!-- Navigation -->
   <nav class="nav">
-    <div class="nav__inner" id="mainNav">
+    <div class="nav__inner">
       <a href="index.html" class="nav__item nav__item--active">Home</a>
+      <a href="section.html?s=news" class="nav__item">Lincoln News</a>
+      <a href="section.html?s=features" class="nav__item">Features</a>
+      <a href="section.html?s=opinion" class="nav__item">Opinion</a>
+      <a href="section.html?s=sports" class="nav__item">Sports</a>
+      <a href="section.html?s=reviews" class="nav__item">Reviews</a>
+      <a href="about.html" class="nav__item">About</a>
+      <a href="archive.html" class="nav__item">Archive</a>
+      <span class="nav__issue" id="navIssue"></span>
+      <button class="search-btn" id="searchBtn" aria-label="Search" title="Search (&#8984;K)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4" stroke-linecap="round"/></svg>
+      </button>
     </div>
   </nav>
 
   <!-- Main -->
-  <main>
-    <div class="wrap" id="homeContent">
-      <div style="padding:40px 0;text-align:center;color:var(--c-muted);">Loading&hellip;</div>
+  <main id="main-content">
+    <div class="wrap">
+      <div id="pageContent">
+        <p style="padding:40px 0; color:var(--c-muted); font-family:var(--f-sans); font-size:14px;">Loading&hellip;</p>
+      </div>
     </div>
   </main>
 
@@ -49,11 +72,7 @@
         <div class="footer__wordmark">The Railsplitter</div>
         <div class="footer__school">Official Student Publication</div>
         <address class="footer__address" style="font-style:normal;">
-          Lincoln High School<br>
-          3501 North Broadway<br>
-          Los Angeles, CA 90031<br>
-          (323) 441-4600<br>
-          Instagram: @lhsjournalism2020
+          Lincoln High School<br>3501 North Broadway<br>Los Angeles, CA 90031
         </address>
       </div>
       <div class="footer__divider"></div>
@@ -71,250 +90,292 @@
           <div class="footer__staff-role">Faculty Advisor</div>
           <div class="footer__staff-name">Mr. Brewer</div>
         </div>
-        <div class="footer__staff-item">
-          <div class="footer__staff-role">Photo &amp; Copy Editor</div>
-          <div class="footer__staff-name">Mr. Skramstad</div>
-        </div>
       </div>
       <div class="footer__divider"></div>
       <div>
         <div class="footer__col-title">Sections</div>
-        <div class="footer__links" id="footerNav"></div>
+        <div class="footer__links">
+          <a href="section.html?s=news">Lincoln News</a>
+          <a href="section.html?s=features">Features</a>
+          <a href="section.html?s=opinion">Opinion</a>
+          <a href="section.html?s=sports">Sports</a>
+          <a href="section.html?s=reviews">Reviews</a>
+          <a href="archive.html">Archive</a>
+          <a href="about.html">About Us</a>
+        </div>
       </div>
     </div>
     <div class="footer__bottom">
       &copy; 2026 The Railsplitter &nbsp;&middot;&nbsp; Lincoln High School &nbsp;&middot;&nbsp;
-      Editorials are the views of the editorial board. All other opinions are those of individual students and do not represent the campus or Railsplitter staff.
+      Editorials are the views of the editorial board. All other opinions are those of individual students.
     </div>
   </footer>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 4l7 7H3l7-7z"/></svg>
+  </button>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="Search">
+    <button class="search-overlay__close" id="searchClose" aria-label="Close search">&times;</button>
+    <div class="search-overlay__inner">
+      <label class="search-overlay__label" for="searchInput">Search The Railsplitter</label>
+      <form class="search-overlay__form" action="search.html" method="get">
+        <input class="search-overlay__input" id="searchInput" name="q" type="search" placeholder="Search articles&hellip;" autocomplete="off">
+      </form>
+      <div class="search-overlay__hints">
+        <a href="search.html?q=sports" class="search-overlay__hint">Sports</a>
+        <a href="search.html?q=opinion" class="search-overlay__hint">Opinion</a>
+        <a href="search.html?q=features" class="search-overlay__hint">Features</a>
+        <a href="search.html?q=news" class="search-overlay__hint">Lincoln News</a>
+        <a href="search.html?q=reviews" class="search-overlay__hint">Reviews</a>
+      </div>
+      <p class="search-overlay__shortcut">Press <kbd>Esc</kbd> to close &nbsp;&middot;&nbsp; <kbd>&#8984;K</kbd> to open from anywhere</p>
+    </div>
+  </div>
+
+  <!-- Tweaks Panel -->
+  <button class="tweaks-fab" id="tweaksFab" aria-label="Customize appearance" title="Customize">&#9998;</button>
+  <div class="tweaks-panel" id="tweaksPanel">
+    <div class="tweaks-panel__heading">Customize</div>
+    <div class="tweaks-group">
+      <div class="tweaks-group__label">Accent</div>
+      <div class="tweaks-swatches" id="accentSwatches"></div>
+    </div>
+    <div class="tweaks-group">
+      <div class="tweaks-group__label">Typography</div>
+      <div class="tweaks-chips" id="typeChips"></div>
+    </div>
+    <div class="tweaks-group">
+      <div class="tweaks-group__label">Background</div>
+      <div class="tweaks-chips" id="bgChips"></div>
+    </div>
+    <div class="tweaks-group">
+      <div class="tweaks-group__label">Density</div>
+      <div class="tweaks-chips" id="densityChips"></div>
+    </div>
+  </div>
 
   <script>
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    function articleById(articles, id) {
-      return articles.find(function(a) { return a.id === id; });
-    }
+    var SECTION_TITLES = { news:'Lincoln News', features:'Features', opinion:'Opinion', sports:'Sports', reviews:'Reviews' };
 
-    function cardHTML(a, sectionTitle) {
-      return '<article class="card">' +
-        '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
-          '<div class="img-ph ' + esc(a.ph) + '" style="aspect-ratio:3/2;">' +
-            (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
-          '</div>' +
-        '</a>' +
-        '<span class="label">' + esc(sectionTitle) + '</span>' +
-        '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +
-        '<p class="card__meta">By <strong>' + esc(a.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(a.issue) + '</p>' +
-        (a.dek ? '<p class="card__dek">' + esc(a.dek) + '</p>' : '') +
-      '</article>';
-    }
+    function st(slug) { return SECTION_TITLES[slug] || slug; }
+    function ph(slug) { return 'img-ph--' + slug; }
 
-    fetch('content.json').then(function(r) { return r.json(); }).then(function(data) {
-      var articles = data.articles;
-      var sections = data.sections;
-      var hp = data.homepage;
+    fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+      var articles = (data.articles || []).filter(function(a){ return a.published !== false; });
+      var hp = data.homepage || {};
+      var issues = data.issues || [];
 
-      // Nav
-      var navEl = document.getElementById('mainNav');
-      sections.forEach(function(sec) {
-        var a = document.createElement('a');
-        a.href = 'section.html?s=' + sec.slug;
-        a.className = 'nav__item';
-        a.textContent = sec.title;
-        navEl.appendChild(a);
-      });
+      // Nav issue badge
+      if (issues.length) {
+        var latest = issues[issues.length - 1];
+        var shortDate = latest.date ? latest.date.replace(/\s+\d{4}$/, '') : '';
+        document.getElementById('navIssue').textContent = latest.title + (shortDate ? ' · ' + shortDate : '');
+      }
 
-      // Footer nav
-      var footerNav = document.getElementById('footerNav');
-      sections.forEach(function(sec) {
-        var a = document.createElement('a');
-        a.href = 'section.html?s=' + sec.slug;
-        a.textContent = sec.title;
-        footerNav.appendChild(a);
-      });
+      var heroId = hp.hero;
+      var heroAsideIds = hp.heroAside || [];
+      var secIds = hp.sections || {};
+      var heroArticle = heroId ? articles.find(function(a){ return a.id === heroId; }) : null;
 
       // Hero
-      var hero = articleById(articles, hp.hero);
-      var asideItems = hp.heroAside.map(function(id) { return articleById(articles, id); }).filter(Boolean);
+      var heroHTML = '';
+      if (heroArticle) {
+        var ha = heroArticle;
+        heroHTML =
+          '<article class="hero__main">' +
+            '<span class="label">' + esc(st(ha.section)) + '</span>' +
+            '<div class="hero__img">' +
+              '<a href="article.html?id=' + esc(ha.id) + '">' +
+                '<div class="img-ph ' + esc(ph(ha.section)) + '" style="height:100%;min-height:300px;">' +
+                  (ha.credit ? '<span class="img-ph__credit">' + esc(ha.credit) + '</span>' : '') +
+                '</div>' +
+              '</a>' +
+            '</div>' +
+            '<h2 class="hero__headline"><a href="article.html?id=' + esc(ha.id) + '">' + esc(ha.title) + '</a></h2>' +
+            '<p class="hero__meta">By <strong>' + esc(ha.author) + '</strong>' + (ha.issue ? ' &nbsp;&middot;&nbsp; ' + esc(ha.issue) : '') + '</p>' +
+            (ha.dek ? '<p class="hero__dek">' + esc(ha.dek) + '</p>' : '') +
+            '<a href="article.html?id=' + esc(ha.id) + '" class="read-more">Read the full story &rsaquo;</a>' +
+          '</article>';
+      }
 
-      var heroHTML = '<section class="hero">' +
-        '<article class="hero__main">' +
-          '<span class="label">' + esc(sections.find(function(s){return s.slug===hero.section;}).title) + '</span>' +
-          '<div class="hero__img"><div class="img-ph ' + esc(hero.ph) + '" style="height:100%;min-height:300px;">' +
-            (hero.credit ? '<span class="img-ph__credit">' + esc(hero.credit) + '</span>' : '') +
-          '</div></div>' +
-          '<h2 class="hero__headline"><a href="article.html?id=' + esc(hero.id) + '">' + esc(hero.title) + '</a></h2>' +
-          '<p class="hero__meta">By <strong>' + esc(hero.author) + '</strong> &nbsp;&middot;&nbsp; ' + esc(hero.issue) + '</p>' +
-          '<p class="hero__dek">' + esc(hero.dek) + '</p>' +
-          '<a href="article.html?id=' + esc(hero.id) + '" class="read-more">Read the full story &rsaquo;</a>' +
-        '</article>' +
-        '<div class="hero__divider"></div>' +
-        '<aside class="hero__aside">' +
-        asideItems.map(function(a) {
-          var secTitle = (sections.find(function(s){return s.slug===a.section;}) || {}).title || '';
-          return '<div class="hero__aside-item">' +
-            '<span class="label">' + esc(secTitle) + '</span>' +
+      // Hero aside
+      var asideHTML = '';
+      heroAsideIds.slice(0,3).forEach(function(id) {
+        var a = articles.find(function(x){ return x.id === id; });
+        if (!a) return;
+        asideHTML +=
+          '<div class="hero__aside-item">' +
+            '<span class="label">' + esc(st(a.section)) + '</span>' +
             '<h3 class="hero__aside-hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +
             '<p class="hero__meta">By <strong>' + esc(a.author) + '</strong></p>' +
-            '<p class="hero__aside-dek">' + esc(a.dek) + '</p>' +
+            (a.dek ? '<p class="hero__aside-dek">' + esc(a.dek) + '</p>' : '') +
           '</div>';
-        }).join('') +
-        '</aside></section>';
+      });
 
-      // Section grids
-      var gridsHTML = sections.map(function(sec) {
-        var ids = hp.sections[sec.slug] || [];
-        var secArticles = ids.map(function(id) { return articleById(articles, id); }).filter(function(a) { return a && a.published; });
-        if (!secArticles.length) return '';
-        return '<section>' +
-          '<div class="sec-head">' +
-            '<h2 class="sec-head__title">' + esc(sec.title) + '</h2>' +
-            '<a href="section.html?s=' + esc(sec.slug) + '" class="sec-head__more">All ' + esc(sec.title) + ' &rsaquo;</a>' +
-          '</div>' +
-          '<div class="grid-3">' + secArticles.map(function(a) { return cardHTML(a, sec.title); }).join('') + '</div>' +
-        '</section>';
-      }).join('');
-
-      document.getElementById('homeContent').innerHTML = heroHTML + gridsHTML;
-    }).catch(function() {
-      document.getElementById('homeContent').innerHTML =
-        '<p style="padding:40px;color:var(--c-muted);">Could not load content. Open via a local server or GitHub Pages, not file://.</p>';
-    });
-  </script>
-
-  <!-- Tweaks FAB -->
-  <button class="tweaks-fab" id="tweaksFab" title="Tweaks" aria-label="Open Tweaks">
-    <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 1.5a6.5 6.5 0 110 13 6.5 6.5 0 010-13zM10 6a1 1 0 100 2 1 1 0 000-2zm0 3a1 1 0 00-1 1v4a1 1 0 002 0v-4a1 1 0 00-1-1z"/></svg>
-  </button>
-
-  <!-- Tweaks Panel -->
-  <div class="tweaks-panel" id="tweaksPanel" role="dialog" aria-label="Tweaks">
-    <div class="tweaks-panel__heading">Tweaks</div>
-
-    <div class="tweaks-group">
-      <div class="tweaks-group__label">Accent Color</div>
-      <div class="tweaks-swatches">
-        <button class="tweaks-swatch active" data-color="#C85500" style="background:#C85500;" title="Burnt Orange" aria-label="Burnt Orange"></button>
-        <button class="tweaks-swatch" data-color="#1B3A7A" style="background:#1B3A7A;" title="Deep Blue" aria-label="Deep Blue"></button>
-        <button class="tweaks-swatch" data-color="#1F6344" style="background:#1F6344;" title="Forest Green" aria-label="Forest Green"></button>
-        <button class="tweaks-swatch" data-color="#8B2020" style="background:#8B2020;" title="Cardinal" aria-label="Cardinal"></button>
-      </div>
-    </div>
-
-    <div class="tweaks-group">
-      <div class="tweaks-group__label">Typography</div>
-      <div class="tweaks-chips">
-        <button class="tweaks-chip active" data-font="classic">Classic</button>
-        <button class="tweaks-chip" data-font="modern">Modern</button>
-        <button class="tweaks-chip" data-font="bold">Bold</button>
-      </div>
-    </div>
-
-    <div class="tweaks-group">
-      <div class="tweaks-group__label">Background</div>
-      <div class="tweaks-chips">
-        <button class="tweaks-chip active" data-bg="paper">Paper</button>
-        <button class="tweaks-chip" data-bg="white">White</button>
-        <button class="tweaks-chip" data-bg="dark">Dark</button>
-      </div>
-    </div>
-
-    <div class="tweaks-group">
-      <div class="tweaks-group__label">Density</div>
-      <div class="tweaks-chips">
-        <button class="tweaks-chip active" data-density="comfortable">Comfortable</button>
-        <button class="tweaks-chip" data-density="compact">Compact</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-      "accentColor": "#C85500",
-      "fontStyle": "classic",
-      "bgStyle": "paper",
-      "density": "comfortable"
-    }/*EDITMODE-END*/;
-
-    // ── Tweaks toggle ──────────────────────
-    const fab   = document.getElementById('tweaksFab');
-    const panel = document.getElementById('tweaksPanel');
-
-    window.addEventListener('message', (e) => {
-      if (e.data && e.data.type === '__activate_edit_mode')   panel.classList.add('open');
-      if (e.data && e.data.type === '__deactivate_edit_mode') panel.classList.remove('open');
-    });
-    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-
-    fab.addEventListener('click', () => {
-      panel.classList.toggle('open');
-      if (!panel.classList.contains('open')) {
-        window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+      var heroSection = '';
+      if (heroHTML && asideHTML) {
+        heroSection = '<section class="hero">' + heroHTML + '<div class="hero__divider"></div><aside class="hero__aside">' + asideHTML + '</aside></section>';
+      } else if (heroHTML) {
+        heroSection = '<section class="hero" style="grid-template-columns:1fr;">' + heroHTML + '</section>';
       }
-    });
 
-    // ── Color swatches ─────────────────────
-    document.querySelectorAll('.tweaks-swatch').forEach(function(sw) {
-      sw.addEventListener('click', function() {
-        document.querySelectorAll('.tweaks-swatch').forEach(function(s) { s.classList.remove('active'); });
-        sw.classList.add('active');
-        var color = sw.dataset.color;
-        document.documentElement.style.setProperty('--c-orange', color);
-        window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { accentColor: color } }, '*');
+      // Section previews
+      var previewHTML = '';
+      ['news','features','opinion','sports','reviews'].forEach(function(slug) {
+        var ids = secIds[slug] || [];
+        if (!ids.length) return;
+        var secArticles = ids.map(function(id){ return articles.find(function(x){ return x.id === id; }); }).filter(Boolean).slice(0,3);
+        if (!secArticles.length) return;
+        previewHTML +=
+          '<section>' +
+            '<div class="sec-head">' +
+              '<h2 class="sec-head__title">' + esc(st(slug)) + '</h2>' +
+              '<a href="section.html?s=' + esc(slug) + '" class="sec-head__more">All ' + esc(st(slug)) + ' &rsaquo;</a>' +
+            '</div>' +
+            '<div class="grid-3">';
+        secArticles.forEach(function(a) {
+          previewHTML +=
+            '<article class="card">' +
+              '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
+                '<div class="img-ph ' + esc(ph(a.section)) + '" style="aspect-ratio:3/2;">' +
+                  (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
+                '</div>' +
+              '</a>' +
+              '<span class="label">' + esc(st(slug)) + '</span>' +
+              '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +
+              '<p class="card__meta">By <strong>' + esc(a.author) + '</strong></p>' +
+              (a.dek ? '<p class="card__dek">' + esc(a.dek) + '</p>' : '') +
+            '</article>';
+        });
+        previewHTML += '</div></section>';
       });
+
+      if (!heroSection && !previewHTML) {
+        document.getElementById('pageContent').innerHTML =
+          '<div style="padding:80px 0; text-align:center; color:var(--c-muted); font-family:var(--f-sans);">' +
+            '<p style="font-size:18px; margin-bottom:8px;">No articles yet.</p>' +
+            '<p style="font-size:14px;">Add articles to get started.</p>' +
+          '</div>';
+        return;
+      }
+      document.getElementById('pageContent').innerHTML = heroSection + previewHTML;
+    }).catch(function() {
+      document.getElementById('pageContent').innerHTML =
+        '<p style="padding:40px 0; color:var(--c-muted);">Could not load content. Run a local server to view this page.</p>';
     });
 
-    // ── Font pairings ──────────────────────
-    var fontPairings = {
-      classic: { display: "'Playfair Display', Georgia, serif",    body: "'Source Serif 4', Georgia, serif" },
-      modern:  { display: "'Libre Baskerville', Georgia, serif",   body: "'Lora', Georgia, serif" },
-      bold:    { display: "'DM Serif Display', Georgia, serif",    body: "'DM Sans', system-ui, sans-serif" }
-    };
+    document.getElementById('breakingClose').addEventListener('click', function() {
+      document.getElementById('breakingBanner').style.display = 'none';
+    });
 
-    document.querySelectorAll('[data-font]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-font]').forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var p = fontPairings[btn.dataset.font];
-        document.documentElement.style.setProperty('--f-display', p.display);
-        document.documentElement.style.setProperty('--f-body', p.body);
-        window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { fontStyle: btn.dataset.font } }, '*');
+    var btt = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() { btt.classList.toggle('visible', window.scrollY > 400); }, { passive: true });
+    btt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+    var sBtn = document.getElementById('searchBtn');
+    var sOverlay = document.getElementById('searchOverlay');
+    var sClose = document.getElementById('searchClose');
+    var sInput = document.getElementById('searchInput');
+    sBtn.addEventListener('click', function() { sOverlay.classList.add('open'); setTimeout(function(){ sInput.focus(); }, 50); });
+    sClose.addEventListener('click', function() { sOverlay.classList.remove('open'); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') sOverlay.classList.remove('open');
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); sOverlay.classList.add('open'); setTimeout(function(){ sInput.focus(); }, 50); }
+    });
+
+    // Tweaks panel
+    (function() {
+      var root = document.documentElement;
+      var KEY = 'railsplitter_tweaks';
+      var saved = {};
+      try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){}
+
+      var accents = [
+        { label:'Burnt Orange', value:'#c85500' },
+        { label:'Navy Blue',    value:'#1a3a5c' },
+        { label:'Forest Green', value:'#2d5a27' },
+        { label:'Crimson',      value:'#9b1c1c' }
+      ];
+      var typeMap = {
+        Classic: { '--f-display':"'Playfair Display', Georgia, serif", '--f-body':"Georgia, serif", '--f-sans':"'Source Sans 3', system-ui, sans-serif" },
+        Modern:  { '--f-display':"'DM Sans', system-ui, sans-serif",   '--f-body':"'DM Sans', system-ui, sans-serif", '--f-sans':"'DM Sans', system-ui, sans-serif" },
+        Slab:    { '--f-display':"'Roboto Slab', Georgia, serif",       '--f-body':"'Roboto Slab', Georgia, serif",   '--f-sans':"'Roboto Condensed', system-ui, sans-serif" }
+      };
+      var bgMap = {
+        Paper: { '--c-bg':'#F5F2EC', '--c-surface':'#EDE9E0' },
+        White: { '--c-bg':'#FFFFFF', '--c-surface':'#F4F4F4' },
+        Slate: { '--c-bg':'#1A1A1E', '--c-surface':'#242428', '--c-ink':'#E8E6E0', '--c-muted':'#9A9894', '--c-rule':'rgba(255,255,255,.1)' }
+      };
+      var densityMap = {
+        Compact:     { '--gap':'20px', '--x-pad':'20px', '--max-w':'1100px' },
+        Comfortable: { '--gap':'32px', '--x-pad':'24px', '--max-w':'1160px' },
+        Spacious:    { '--gap':'48px', '--x-pad':'32px', '--max-w':'1240px' }
+      };
+
+      function applyAll(s) {
+        if (s.accent) root.style.setProperty('--c-orange', s.accent);
+        if (s.type && typeMap[s.type])     Object.entries(typeMap[s.type]).forEach(function(kv){ root.style.setProperty(kv[0],kv[1]); });
+        if (s.bg && bgMap[s.bg])           Object.entries(bgMap[s.bg]).forEach(function(kv){ root.style.setProperty(kv[0],kv[1]); });
+        if (s.density && densityMap[s.density]) Object.entries(densityMap[s.density]).forEach(function(kv){ root.style.setProperty(kv[0],kv[1]); });
+      }
+      applyAll(saved);
+
+      function save(k, v) { saved[k] = v; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch(e){} }
+
+      var swCont = document.getElementById('accentSwatches');
+      accents.forEach(function(ac) {
+        var btn = document.createElement('button');
+        btn.className = 'tweaks-swatch' + (saved.accent === ac.value ? ' active' : '');
+        btn.title = ac.label; btn.style.background = ac.value;
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tweaks-swatch').forEach(function(b){ b.classList.remove('active'); });
+          btn.classList.add('active');
+          root.style.setProperty('--c-orange', ac.value); save('accent', ac.value);
+        });
+        swCont.appendChild(btn);
       });
-    });
 
-    // ── Background ─────────────────────────
-    var bgStyles = {
-      paper: { bg: '#FAFAF7', surface: '#FFFFFF', ink: '#1A1916', muted: '#6E6B64' },
-      white: { bg: '#FFFFFF', surface: '#F8F8F8', ink: '#1A1916', muted: '#6E6B64' },
-      dark:  { bg: '#18171A', surface: '#232228', ink: '#F0EDE8', muted: '#908D88' }
-    };
+      function makeChips(ids, containerId, map, saveKey) {
+        var cont = document.getElementById(containerId);
+        Object.keys(map).forEach(function(name) {
+          var btn = document.createElement('button');
+          btn.className = 'tweaks-chip' + (saved[saveKey] === name ? ' active' : '');
+          btn.textContent = name;
+          btn.addEventListener('click', function() {
+            cont.querySelectorAll('.tweaks-chip').forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+            Object.entries(map[name]).forEach(function(kv){ root.style.setProperty(kv[0],kv[1]); });
+            save(saveKey, name);
+          });
+          cont.appendChild(btn);
+        });
+      }
+      makeChips(null, 'typeChips', typeMap, 'type');
+      makeChips(null, 'bgChips', bgMap, 'bg');
+      makeChips(null, 'densityChips', densityMap, 'density');
 
-    document.querySelectorAll('[data-bg]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-bg]').forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var s = bgStyles[btn.dataset.bg];
-        document.documentElement.style.setProperty('--c-bg', s.bg);
-        document.documentElement.style.setProperty('--c-surface', s.surface);
-        document.documentElement.style.setProperty('--c-ink', s.ink);
-        document.documentElement.style.setProperty('--c-muted', s.muted);
-        window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { bgStyle: btn.dataset.bg } }, '*');
+      var fab = document.getElementById('tweaksFab');
+      var panel = document.getElementById('tweaksPanel');
+      fab.addEventListener('click', function() { panel.classList.toggle('open'); });
+      document.addEventListener('click', function(e) {
+        if (!panel.contains(e.target) && e.target !== fab) panel.classList.remove('open');
       });
-    });
 
-    // ── Density ────────────────────────────
-    document.querySelectorAll('[data-density]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-density]').forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var gap = btn.dataset.density === 'compact' ? '16px' : '28px';
-        document.documentElement.style.setProperty('--gap', gap);
-        window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { density: btn.dataset.density } }, '*');
+      // postMessage bridge for editor.html
+      window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === '__activate_edit_mode') panel.classList.add('open');
+        if (e.data && e.data.type === '__edit_mode_set_keys' && e.data.keys) {
+          applyAll(e.data.keys); save('accent', e.data.keys.accent || saved.accent);
+        }
       });
-    });
+    })();
   </script>
-
 </body>
 </html>

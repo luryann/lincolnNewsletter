@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search — The Railsplitter</title>
+  <meta name="description" content="Search all articles from The Railsplitter, Lincoln High School's student newspaper.">
+  <meta property="og:title" content="Search — The Railsplitter">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar__left">Lincoln High School &nbsp;&middot;&nbsp; Los Angeles, CA 90031</div>
+    <div class="top-bar__right">Follow us: <a href="https://instagram.com/lhsjournalism2020" target="_blank">@lhsjournalism2020</a></div>
+  </div>
+
+  <!-- Masthead -->
+  <header>
+    <div class="wrap">
+      <div class="masthead">
+        <hr class="masthead__rule-top">
+        <a href="index.html"><span class="masthead__wordmark">The Railsplitter</span></a>
+        <span class="masthead__tagline">Official Student Publication &nbsp;&middot;&nbsp; Volume 6 &nbsp;&middot;&nbsp; Lincoln High School</span>
+        <hr class="masthead__rule-bottom">
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__item">Home</a>
+      <a href="section.html?s=news" class="nav__item">Lincoln News</a>
+      <a href="section.html?s=features" class="nav__item">Features</a>
+      <a href="section.html?s=opinion" class="nav__item">Opinion</a>
+      <a href="section.html?s=sports" class="nav__item">Sports</a>
+      <a href="section.html?s=reviews" class="nav__item">Reviews</a>
+      <a href="about.html" class="nav__item">About</a>
+      <a href="archive.html" class="nav__item">Archive</a>
+      <span class="nav__issue" id="navIssue"></span>
+      <button class="search-btn" id="searchBtn" aria-label="Search" title="Search (&#8984;K)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Search Page Content -->
+  <main id="main-content">
+    <div class="wrap">
+      <div class="search-page-head">
+        <h1 class="search-page-title">Search</h1>
+        <input class="search-page-input" id="searchPageInput" type="search" placeholder="Search articles, authors, topics&hellip;" autocomplete="off" autofocus>
+      </div>
+
+      <!-- Section filter chips -->
+      <div class="search-filter-chips" id="filterChips" role="group" aria-label="Filter by section">
+        <button class="filter-chip active" data-sec="all">All</button>
+        <button class="filter-chip" data-sec="Lincoln News">Lincoln News</button>
+        <button class="filter-chip" data-sec="Features">Features</button>
+        <button class="filter-chip" data-sec="Opinion">Opinion</button>
+        <button class="filter-chip" data-sec="Sports">Sports</button>
+        <button class="filter-chip" data-sec="Reviews">Reviews</button>
+      </div>
+
+      <p class="search-page-count" id="searchCount"></p>
+      <div id="searchResults"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div>
+        <div class="footer__wordmark">The Railsplitter</div>
+        <div class="footer__school">Official Student Publication</div>
+        <address class="footer__address" style="font-style:normal;">
+          Lincoln High School<br>3501 North Broadway<br>Los Angeles, CA 90031
+        </address>
+      </div>
+      <div class="footer__divider"></div>
+      <div>
+        <div class="footer__col-title">Staff</div>
+        <div class="footer__staff-item">
+          <div class="footer__staff-role">Editors-in-Chief</div>
+          <div class="footer__staff-name">Megan Nim &amp; Elsa Daily</div>
+        </div>
+        <div class="footer__staff-item">
+          <div class="footer__staff-role">Editor</div>
+          <div class="footer__staff-name">Sophia Miranda</div>
+        </div>
+        <div class="footer__staff-item">
+          <div class="footer__staff-role">Faculty Advisor</div>
+          <div class="footer__staff-name">Mr. Brewer</div>
+        </div>
+      </div>
+      <div class="footer__divider"></div>
+      <div>
+        <div class="footer__col-title">Sections</div>
+        <div class="footer__links">
+          <a href="section.html?s=news">Lincoln News</a>
+          <a href="section.html?s=features">Features</a>
+          <a href="section.html?s=opinion">Opinion</a>
+          <a href="section.html?s=sports">Sports</a>
+          <a href="section.html?s=reviews">Reviews</a>
+          <a href="archive.html">Archive</a>
+          <a href="about.html">About Us</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      &copy; 2026 The Railsplitter &nbsp;&middot;&nbsp; Lincoln High School &nbsp;&middot;&nbsp;
+      Editorials are the views of the editorial board. All other opinions are those of individual students.
+    </div>
+  </footer>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 4l7 7H3l7-7z"/></svg>
+  </button>
+
+  <!-- Search Overlay (⌘K) -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="Search">
+    <button class="search-overlay__close" id="searchClose" aria-label="Close search">&times;</button>
+    <div class="search-overlay__inner">
+      <label class="search-overlay__label" for="searchOverlayInput">Search The Railsplitter</label>
+      <form class="search-overlay__form" action="search.html" method="get">
+        <input class="search-overlay__input" id="searchOverlayInput" name="q" type="search" placeholder="Search articles&hellip;" autocomplete="off">
+      </form>
+      <div class="search-overlay__hints">
+        <a href="search.html?q=sports" class="search-overlay__hint">Sports</a>
+        <a href="search.html?q=opinion" class="search-overlay__hint">Opinion</a>
+        <a href="search.html?q=features" class="search-overlay__hint">Features</a>
+        <a href="search.html?q=news" class="search-overlay__hint">Lincoln News</a>
+        <a href="search.html?q=reviews" class="search-overlay__hint">Reviews</a>
+      </div>
+      <p class="search-overlay__shortcut">Press <kbd>Esc</kbd> to close &nbsp;&middot;&nbsp; <kbd>&#8984;K</kbd> to open from anywhere</p>
+    </div>
+  </div>
+
+  <script>
+    var SECTION_TITLES = { news:'Lincoln News', features:'Features', opinion:'Opinion', sports:'Sports', reviews:'Reviews' };
+    var ALL_ARTICLES = [];
+    var activeSec = 'all';
+    var initQ = new URLSearchParams(window.location.search).get('q') || '';
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function highlight(text, query) {
+      if (!query) return esc(text);
+      var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return esc(text).replace(re, '<mark style="background:rgba(200,85,0,.18);border-radius:2px;padding:0 1px;">$1</mark>');
+    }
+
+    function renderResults(query, section) {
+      var q = (query || '').toLowerCase().trim();
+      var results = ALL_ARTICLES.filter(function(a) {
+        var secLabel = SECTION_TITLES[a.section] || a.section || '';
+        var matchSec = section === 'all' || secLabel === section;
+        var matchQ = !q ||
+          (a.title||'').toLowerCase().includes(q) ||
+          (a.author||'').toLowerCase().includes(q) ||
+          secLabel.toLowerCase().includes(q) ||
+          (a.dek||'').toLowerCase().includes(q) ||
+          (a.issue||'').toLowerCase().includes(q);
+        return matchSec && matchQ;
+      });
+
+      var countEl = document.getElementById('searchCount');
+      if (q) {
+        countEl.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' for “' + query + '”';
+      } else {
+        countEl.textContent = results.length + ' article' + (results.length !== 1 ? 's' : '') + (section !== 'all' ? ' in ' + section : '');
+      }
+
+      var container = document.getElementById('searchResults');
+      if (results.length === 0) {
+        container.innerHTML =
+          '<div class="search-empty">' +
+            '<div class="search-empty__hed">No stories found</div>' +
+            '<p class="search-empty__sub">Try a different search term or browse a section above.</p>' +
+          '</div>';
+        return;
+      }
+
+      var html = '';
+      results.forEach(function(a) {
+        var secLabel = SECTION_TITLES[a.section] || a.section || '';
+        var ph = 'img-ph--' + (a.section || 'news');
+        html +=
+          '<div class="search-result">' +
+            '<div class="search-result__body">' +
+              '<span class="label" style="margin-bottom:4px;">' + esc(secLabel) + '</span>' +
+              '<h2 class="search-result__hed"><a href="article.html?id=' + esc(a.id) + '">' + highlight(a.title||'', q) + '</a></h2>' +
+              (a.dek ? '<p class="search-result__dek">' + highlight(a.dek, q) + '</p>' : '') +
+              '<p class="search-result__meta">By <strong>' + esc(a.author||'') + '</strong>' + (a.issue ? ' &nbsp;&middot;&nbsp; ' + esc(a.issue) : '') + '</p>' +
+            '</div>' +
+            '<div class="search-result__thumb">' +
+              '<div class="img-ph ' + esc(ph) + '" style="aspect-ratio:3/2;"></div>' +
+            '</div>' +
+          '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    var input = document.getElementById('searchPageInput');
+    input.value = initQ;
+    if (initQ) document.title = '“' + initQ + '” — The Railsplitter';
+
+    fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+      ALL_ARTICLES = (data.articles || []).filter(function(a){ return a.published !== false; });
+      var issues = data.issues || [];
+      if (issues.length) {
+        var latest = issues[issues.length - 1];
+        var shortDate = latest.date ? latest.date.replace(/\s+\d{4}$/, '') : '';
+        document.getElementById('navIssue').textContent = latest.title + (shortDate ? ' · ' + shortDate : '');
+      }
+      renderResults(initQ, activeSec);
+    }).catch(function() {
+      document.getElementById('searchCount').textContent = 'Could not load articles.';
+    });
+
+    input.addEventListener('input', function() { renderResults(input.value, activeSec); });
+
+    document.getElementById('filterChips').addEventListener('click', function(e) {
+      var chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      document.querySelectorAll('.filter-chip').forEach(function(c){ c.classList.remove('active'); });
+      chip.classList.add('active');
+      activeSec = chip.dataset.sec;
+      renderResults(input.value, activeSec);
+    });
+
+    var btt = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() { btt.classList.toggle('visible', window.scrollY > 400); }, { passive: true });
+    btt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+    var sBtn = document.getElementById('searchBtn');
+    var sOverlay = document.getElementById('searchOverlay');
+    var sClose = document.getElementById('searchClose');
+    var sInput2 = document.getElementById('searchOverlayInput');
+    sBtn.addEventListener('click', function() { sOverlay.classList.add('open'); setTimeout(function(){ sInput2.focus(); }, 50); });
+    sClose.addEventListener('click', function() { sOverlay.classList.remove('open'); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') sOverlay.classList.remove('open');
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); sOverlay.classList.add('open'); setTimeout(function(){ sInput2.focus(); }, 50); }
+    });
+  </script>
+</body>
+</html>
