@@ -10,6 +10,13 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
+  <!-- Breaking News -->
+  <div class="breaking" id="breakingBanner" role="alert" style="display:none;">
+    <span class="breaking__badge">Breaking</span>
+    <span class="breaking__text" id="breakingText"></span>
+    <button class="breaking__close" id="breakingClose" aria-label="Dismiss">&times;</button>
+  </div>
+
   <!-- Top Bar -->
   <div class="top-bar">
     <div class="top-bar__left">Lincoln High School &nbsp;&middot;&nbsp; Los Angeles, CA 90031</div>
@@ -146,7 +153,18 @@
         (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') + '</div>';
     }
 
+    document.getElementById('breakingClose').addEventListener('click', function() {
+      document.getElementById('breakingBanner').style.display = 'none';
+    });
+
     fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+      var b = data.breaking;
+      if (b && b.active && b.text) {
+        var el = document.getElementById('breakingText');
+        if (b.link) { el.innerHTML = '<a href="' + esc(b.link) + '">' + esc(b.text) + '</a>'; }
+        else { el.textContent = b.text; }
+        document.getElementById('breakingBanner').style.display = '';
+      }
       var articles = (data.articles || []).filter(function(a){ return a.published !== false && a.section === slug; });
       var issues = data.issues || [];
       var secTitle = SECTION_TITLES[slug] || slug;

@@ -11,6 +11,13 @@
   <div class="progress-bar" id="progressBar" aria-hidden="true"></div>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
+  <!-- Breaking News -->
+  <div class="breaking" id="breakingBanner" role="alert" style="display:none;">
+    <span class="breaking__badge">Breaking</span>
+    <span class="breaking__text" id="breakingText"></span>
+    <button class="breaking__close" id="breakingClose" aria-label="Dismiss">&times;</button>
+  </div>
+
   <!-- Top Bar -->
   <div class="top-bar">
     <div class="top-bar__left">Lincoln High School &nbsp;&middot;&nbsp; Los Angeles, CA 90031</div>
@@ -183,10 +190,22 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    document.getElementById('breakingClose').addEventListener('click', function() {
+      document.getElementById('breakingBanner').style.display = 'none';
+    });
+
     fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
       var articles = data.articles || [];
       var issues = data.issues || [];
       var article = id ? articles.find(function(a){ return a.id === id; }) : null;
+
+      var b = data.breaking;
+      if (b && b.active && b.text) {
+        var el = document.getElementById('breakingText');
+        if (b.link) { el.innerHTML = '<a href="' + esc(b.link) + '">' + esc(b.text) + '</a>'; }
+        else { el.textContent = b.text; }
+        document.getElementById('breakingBanner').style.display = '';
+      }
 
       // Nav issue badge
       if (issues.length) {

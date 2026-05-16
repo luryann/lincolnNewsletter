@@ -176,7 +176,20 @@
         (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') + '</div>';
     }
 
+    function showBreaking(b) {
+      if (!b || !b.active || !b.text) return;
+      var banner = document.getElementById('breakingBanner');
+      var el = document.getElementById('breakingText');
+      if (b.link) {
+        el.innerHTML = '<a href="' + esc(b.link) + '">' + esc(b.text) + '</a>';
+      } else {
+        el.textContent = b.text;
+      }
+      banner.style.display = '';
+    }
+
     fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+      showBreaking(data.breaking);
       var articles = (data.articles || []).filter(function(a){ return a.published !== false; });
       var hp = data.homepage || {};
       var issues = data.issues || [];

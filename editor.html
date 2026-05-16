@@ -173,6 +173,10 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
         <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h3a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h3a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
         Homepage
       </button>
+      <button class="nav-item" data-view="breaking">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        Breaking News
+      </button>
       <button class="nav-item" data-view="sections">
         <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
         Sections
@@ -1451,6 +1455,85 @@ App.views.staff = {
     }).catch(function(err) {
       btn.disabled = false; btn.textContent = 'Save Changes';
       App.handleApiError(err);
+    });
+  }
+};
+
+// ── Breaking News view ─────────────────────────────────────────────────────
+App.views.breaking = {
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'Breaking News';
+    document.getElementById('topbarActions').innerHTML = '';
+
+    if (!App.state.content.breaking) {
+      App.state.content.breaking = { active: false, text: '', link: '' };
+    }
+    var b = App.state.content.breaking;
+
+    var articles = App.state.content.articles.filter(function(a) { return a.published; });
+    var artOptions = '<option value="">— No link —</option>' + articles.map(function(a) {
+      var selected = b.link === ('article.html?id=' + a.id) ? ' selected' : '';
+      return '<option value="article.html?id=' + App.esc(a.id) + '"' + selected + '>' + App.esc(a.title) + '</option>';
+    }).join('');
+
+    document.getElementById('contentArea').innerHTML =
+      '<div style="max-width:520px;">' +
+        '<div class="card">' +
+          '<div class="card-title">Breaking News Banner</div>' +
+          '<div style="margin-bottom:18px;">' +
+            '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:8px;">Status</div>' +
+            '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">' +
+              '<input type="checkbox" id="bn-active"' + (b.active ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:#C85500;cursor:pointer;">' +
+              '<span style="font-size:13px;">' + (b.active ? 'Banner is <strong>live</strong> on the site' : 'Banner is <strong>off</strong>') + '</span>' +
+            '</label>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Message</label>' +
+            '<input type="text" id="bn-text" value="' + App.esc(b.text) + '" placeholder="e.g. Breaking: LAUSD board votes on budget tonight — details inside">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Link to article <span style="color:#aaa;font-weight:400;">(optional)</span></label>' +
+            '<select id="bn-link">' + artOptions + '</select>' +
+          '</div>' +
+          (b.active && b.text
+            ? '<div style="background:#1a1916;color:#fff;border-radius:6px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">' +
+                '<span style="background:#C85500;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:3px;">Breaking</span>' +
+                '<span>' + App.esc(b.text) + '</span>' +
+              '</div>'
+            : ''
+          ) +
+          '<button class="btn btn-primary" id="bn-save">Save &amp; Push</button>' +
+        '</div>' +
+        '<p style="font-size:12px;color:#aaa;margin-top:8px;">The banner appears at the very top of every page. Toggle it off when the story is no longer breaking.</p>' +
+      '</div>';
+
+    document.getElementById('bn-active').addEventListener('change', function() {
+      var label = this.nextElementSibling;
+      label.innerHTML = this.checked ? 'Banner is <strong>live</strong> on the site' : 'Banner is <strong>off</strong>';
+    });
+
+    document.getElementById('bn-save').addEventListener('click', function() {
+      var active = document.getElementById('bn-active').checked;
+      var text   = document.getElementById('bn-text').value.trim();
+      var link   = document.getElementById('bn-link').value;
+
+      if (active && !text) {
+        App.showError('Please enter a message before enabling the banner.');
+        return;
+      }
+
+      App.state.content.breaking = { active: active, text: text, link: link };
+
+      var btn = document.getElementById('bn-save');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      App.github.saveContent((active ? 'Breaking: activate banner' : 'Breaking: disable banner')).then(function() {
+        App.showSuccess(active ? 'Breaking news banner is now live.' : 'Breaking news banner turned off.');
+        btn.disabled = false; btn.textContent = 'Save & Push';
+        App.views.breaking.render();
+      }).catch(function(err) {
+        btn.disabled = false; btn.textContent = 'Save & Push';
+        App.handleApiError(err);
+      });
     });
   }
 };
