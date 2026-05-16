@@ -216,13 +216,15 @@ var App = {
   REPO_OWNER: 'luryann',
   REPO_NAME:  'lincolnNewsletter',
   CONTENT_PATH: 'content.json',
+  ALLOWED_EDITORS: ['luryann'], // GitHub usernames permitted to use this editor
 
   state: {
-    token:   null,
-    sha:     null,
-    content: null,
-    view:    'articles',
-    articleId: null,
+    token:        null,
+    sha:          null,
+    content:      null,
+    lastSavedJson: null,
+    view:         'articles',
+    articleId:    null,
     pendingChanges: []
   },
 
@@ -279,16 +281,23 @@ var App = {
       }).then(function(data) {
         App.state.sha = data.sha;
         App.state.content = JSON.parse(atob(data.content.replace(/\n/g, '')));
+        App.state.lastSavedJson = JSON.stringify(App.state.content, null, 2);
         return App.state.content;
       });
     },
 
     saveContent: function(commitMessage) {
+      var currentJson = JSON.stringify(App.state.content, null, 2);
+      if (currentJson === App.state.lastSavedJson) {
+        App.state.pendingChanges = [];
+        App.updatePushBar();
+        return Promise.resolve();
+      }
       var url = App.github.apiBase + '/repos/' + App.REPO_OWNER + '/' + App.REPO_NAME +
                 '/contents/' + App.CONTENT_PATH;
       var body = JSON.stringify({
         message: commitMessage || 'Update content via Railsplitter Editor',
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(App.state.content, null, 2)))),
+        content: btoa(unescape(encodeURIComponent(currentJson))),
         sha:     App.state.sha
       });
       return fetch(url, { method: 'PUT', headers: App.github.headers(), body: body }).then(function(r) {
@@ -298,6 +307,7 @@ var App = {
         return r.json();
       }).then(function(data) {
         App.state.sha = data.content.sha;
+        App.state.lastSavedJson = currentJson;
         App.state.pendingChanges = [];
         App.updatePushBar();
       });
@@ -428,11 +438,22 @@ var App = {
     document.getElementById('topbarTitle').textContent = 'Loading…';
     document.getElementById('contentArea').innerHTML = '<div class="spinner"></div>';
 
-    App.github.getContent().then(function() {
-      App.github.validateToken(App.state.token).then(function(user) {
-        document.getElementById('sidebarFooter').innerHTML = 'Signed in as <strong>@' + App.esc(user.login) + '</strong>';
-      }).catch(function() {});
-      App.router.navigate('articles');
+    App.github.validateToken(App.state.token).then(function(user) {
+      if (!App.ALLOWED_EDITORS.includes(user.login.toLowerCase())) {
+        localStorage.removeItem('rs_token');
+        App.state.token = null;
+        document.getElementById('topbarTitle').textContent = 'Access Denied';
+        document.getElementById('contentArea').innerHTML =
+          '<div class="notice notice-error" style="max-width:480px;margin:40px auto;">' +
+            '<strong>Access denied.</strong> Your GitHub account (@' + App.esc(user.login) + ') is not authorized to use this editor. ' +
+            'Contact the editor-in-chief to request access.' +
+          '</div>';
+        return;
+      }
+      document.getElementById('sidebarFooter').innerHTML = 'Signed in as <strong>@' + App.esc(user.login) + '</strong>';
+      return App.github.getContent().then(function() {
+        App.router.navigate('articles');
+      });
     }).catch(function(err) {
       App.handleApiError(err);
     });
@@ -476,6 +497,10 @@ App.views.settings = {
       var statusEl = document.getElementById('tokenStatus');
       statusEl.innerHTML = '<span class="spinner"></span> Connecting…';
       App.github.validateToken(token).then(function(user) {
+        if (!App.ALLOWED_EDITORS.includes(user.login.toLowerCase())) {
+          statusEl.innerHTML = '<span style="color:#b91c1c;">✗ Access denied — @' + App.esc(user.login) + ' is not authorized to use this editor.</span>';
+          return;
+        }
         localStorage.setItem('rs_token', token);
         App.state.token = token;
         statusEl.innerHTML = '<span style="color:#166534;">✓ Connected as @' + App.esc(user.login) + '</span>';
@@ -784,9 +809,9 @@ App.views.articleEditor = {
           var dataUrl = ev.target.result;
           var base64  = dataUrl.split(',')[1];
           App.github.uploadFile(path, base64, 'Photo: upload for ' + a.id).then(function() {
+            a.photo = path;
             return App.github.saveContent('Photo: set photo for ' + a.title);
           }).then(function() {
-            a.photo = path;
             App.showSuccess('Photo uploaded.');
             App.views.articleEditor.render();
           }).catch(function(err) {
