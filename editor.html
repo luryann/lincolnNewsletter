@@ -585,6 +585,12 @@ App.views.articleEditor = {
       return '<option value="' + App.esc(sec.slug) + '"' + (a.section === sec.slug ? ' selected' : '') + '>' + App.esc(sec.title) + '</option>';
     }).join('');
 
+    var issues = App.state.content.issues || [];
+    var issueOptions = '<option value="">— No issue —</option>' + issues.map(function(iss) {
+      return '<option value="' + App.esc(iss.id) + '"' + (a.issueId === iss.id ? ' selected' : '') + '>' +
+        App.esc(iss.title + (iss.date ? ', ' + iss.date : '')) + '</option>';
+    }).join('');
+
     document.getElementById('contentArea').innerHTML =
       '<div class="editor-grid">' +
         '<div><div class="card">' +
@@ -620,7 +626,8 @@ App.views.articleEditor = {
           '</div>' +
           '<div class="field"><label>Author</label><input type="text" id="f-author" value="' + App.esc(a.author) + '"></div>' +
           '<div class="field"><label>Section</label><select id="f-section">' + sectionOptions + '</select></div>' +
-          '<div class="field"><label>Issue / Date</label><input type="text" id="f-issue" value="' + App.esc(a.issue) + '"></div>' +
+          '<div class="field"><label>Issue</label><select id="f-issueId">' + issueOptions + '</select></div>' +
+          '<div class="field"><label>Issue label (display)</label><input type="text" id="f-issue" value="' + App.esc(a.issue) + '" placeholder="e.g. Issue 7, May 2026"></div>' +
           '<div class="photo-panel">' +
             '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Photo</div>' +
             '<div id="photoPanel">' +
@@ -764,11 +771,22 @@ App.views.articleEditor = {
       document.getElementById('publishBtn').textContent = a.published ? 'Update Published' : 'Publish →';
     });
 
+    // Auto-fill issue label when dropdown changes
+    document.getElementById('f-issueId').addEventListener('change', function() {
+      var selId = this.value;
+      var selIssue = (App.state.content.issues || []).find(function(i){ return i.id === selId; });
+      if (selIssue) {
+        var label = selIssue.title + (selIssue.date ? ', ' + selIssue.date : '');
+        document.getElementById('f-issue').value = label;
+      }
+    });
+
     function collectAndSave(published) {
       a.title   = document.getElementById('f-title').value.trim();
       a.dek     = document.getElementById('f-dek').value.trim();
       a.author  = document.getElementById('f-author').value.trim();
       a.section = document.getElementById('f-section').value;
+      a.issueId = document.getElementById('f-issueId').value || null;
       a.issue   = document.getElementById('f-issue').value.trim();
       a.credit  = document.getElementById('f-credit').value.trim();
       a.body    = document.getElementById('richBody').innerHTML;
