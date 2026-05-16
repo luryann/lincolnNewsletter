@@ -275,3 +275,107 @@ def merge_into_content_json(
         encoding='utf-8',
     )
     return articles_added, issues_added
+
+
+def process_pdf(pdf_path: Path) -> dict:
+    """Runs the full pipeline for one PDF.
+    Returns a summary dict with keys: issue_str, pages, articles_added,
+    published, flagged (list of (title, avg_conf)), issues_added.
+    """
+    images = convert_from_path(str(pdf_path), dpi=300)
+
+    all_raw_articles: list[dict] = []
+    issue_info: dict | None = None
+
+    for page_num, image in enumerate(images, start=1):
+        page_width, page_height = image.size
+        ocr_data = pytesseract.image_to_data(image, output_type=Output.DICT)
+
+        # Try to grab issue info from first two pages
+        if issue_info is None and page_num <= 2:
+            page_text = ' '.join(t for t in ocr_data['text'] if t.strip())
+            issue_info = parse_issue_info(page_text)
+
+        blocks = cluster_into_blocks(ocr_data)
+        if not blocks:
+            print(f'  Skipping page {page_num} — no headline detected (photo spread or ad?)')
+            continue
+
+        classified = classify_blocks(blocks, page_height)
+        if not any(b['role'] == 'headline' for b in classified):
+            print(f'  Skipping page {page_num} — no headline detected (photo spread or ad?)')
+            continue
+
+        page_articles = segment_articles(classified)
+        all_raw_articles.extend(page_articles)
+
+    issue_str = f"{issue_info['title']}, {issue_info['date']}" if issue_info else 'Unknown Issue'
+    issue_id = issue_info['id'] if issue_info else 'issue-unknown'
+
+    built_articles: list[dict] = []
+    flagged: list[tuple[str, float]] = []
+
+    for raw in all_raw_articles:
+        article, avg_conf = build_article(raw, issue_str, issue_id)
+        built_articles.append(article)
+        if avg_conf < 60:
+            flagged.append((article['title'], avg_conf))
+
+    new_issues: list[dict] = []
+    if issue_info and built_articles:
+        new_issues = [{
+            'id': issue_info['id'],
+            'title': issue_info['title'],
+            'date': issue_info['date'],
+            'coverArticle': built_articles[0]['id'],
+        }]
+
+    articles_added, issues_added = merge_into_content_json(
+        built_articles, new_issues, CONTENT_JSON
+    )
+
+    published = sum(1 for a in built_articles if a['published'])
+    return {
+        'issue_str': issue_str,
+        'pages': len(images),
+        'articles_added': articles_added,
+        'published': published,
+        'flagged': flagged,
+        'issues_added': issues_added,
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description='Extract articles from a Railsplitter PDF into content.json'
+    )
+    parser.add_argument('pdf', help='Path to the PDF file (relative or absolute)')
+    args = parser.parse_args()
+
+    if not check_poppler():
+        print('Error: poppler not found. Run: brew install poppler')
+        sys.exit(1)
+
+    if not check_tesseract():
+        print('Error: tesseract not found. Run: brew install tesseract')
+        sys.exit(1)
+
+    pdf_path = Path(args.pdf)
+    if not pdf_path.exists():
+        print(f'Error: PDF not found: {pdf_path}')
+        sys.exit(1)
+
+    summary = process_pdf(pdf_path)
+
+    flagged_count = len(summary['flagged'])
+    print(f"\n{summary['issue_str']} — {summary['pages']} pages processed")
+    print(f"  ✓ {summary['articles_added']} articles added "
+          f"({summary['published']} published, {flagged_count} flagged for review)")
+    if summary['issues_added']:
+        print(f"  ✓ {summary['issues_added']} new issues added to content.json")
+    for title, conf in summary['flagged']:
+        print(f'  ⚠ Low confidence: "{title}" (avg {conf:.0f}%) → published: false')
+
+
+if __name__ == '__main__':
+    main()
