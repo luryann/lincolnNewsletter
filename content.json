@@ -26,20 +26,27 @@
       "ph": "img-ph--reviews"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "id": "issue-7",
+      "title": "Issue 7",
+      "date": "May 2026",
+      "coverArticle": null
+    }
+  ],
   "articles": [
     {
       "id": "article-1778909761990",
-      "title": "Untitled",
-      "author": "",
+      "title": "Untitled Test Article",
+      "author": "Ryan Lu",
       "section": "news",
-      "issue": "",
-      "issueId": null,
-      "dek": "",
-      "body": "",
+      "issue": "Issue 7, May 2026",
+      "issueId": "issue-7",
+      "dek": "Hello",
+      "body": "Hello!",
       "ph": "img-ph--news",
-      "credit": "",
-      "photo": null,
+      "credit": "Photo Credit",
+      "photo": "photos/article-1778909761990.jpg",
       "published": false
     }
   ],
