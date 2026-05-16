@@ -64,3 +64,37 @@ def test_is_known_section_true():
 
 def test_is_known_section_false():
     assert is_known_section("ADVERTISEMENTS") is False
+
+# parse_issue_info
+
+def test_parse_issue_info_standard():
+    from extract import parse_issue_info
+    result = parse_issue_info("Issue 3, December 2025")
+    assert result == {
+        'number': '3', 'date': 'December 2025',
+        'id': 'issue-3', 'title': 'Issue 3',
+    }
+
+def test_parse_issue_info_pipe_separator():
+    from extract import parse_issue_info
+    result = parse_issue_info("Issue 6 | April 2026")
+    assert result is not None
+    assert result['number'] == '6'
+    assert result['date'] == 'April 2026'
+
+def test_parse_issue_info_embedded_in_longer_text():
+    from extract import parse_issue_info
+    text = "THE RAILSPLITTER | Issue 5, March 2026 | Lincoln High School"
+    result = parse_issue_info(text)
+    assert result is not None
+    assert result['number'] == '5'
+
+def test_parse_issue_info_no_match_returns_none():
+    from extract import parse_issue_info
+    assert parse_issue_info("The Railsplitter Student Newspaper") is None
+
+def test_parse_issue_info_id_format():
+    from extract import parse_issue_info
+    result = parse_issue_info("Issue 12, May 2025")
+    assert result['id'] == 'issue-12'
+    assert result['title'] == 'Issue 12'

@@ -48,3 +48,26 @@ def detect_section(text: str) -> str:
 
 def is_known_section(text: str) -> bool:
     return text.strip().upper() in SECTION_MAP
+
+
+_ISSUE_RE = re.compile(
+    r'[Ii]ssue\s+(\d+)\s*[,|]\s*([A-Za-z]+\s+\d{4})',
+    re.IGNORECASE,
+)
+
+
+def parse_issue_info(text: str) -> dict | None:
+    """Parse issue number and date from masthead text.
+    Returns {'number', 'date', 'id', 'title'} or None.
+    """
+    m = _ISSUE_RE.search(text)
+    if not m:
+        return None
+    number = m.group(1)
+    date_str = m.group(2).strip()
+    return {
+        'number': number,
+        'date': date_str,
+        'id': f'issue-{number}',
+        'title': f'Issue {number}',
+    }
