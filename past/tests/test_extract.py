@@ -394,3 +394,24 @@ def test_merge_preserves_existing_data(tmp_path):
     ids = [a['id'] for a in data['articles']]
     assert 'old-article' in ids
     assert 'new-article' in ids
+
+# system dependency checks
+
+from unittest.mock import patch
+from extract import check_poppler, check_tesseract
+
+def test_check_poppler_found():
+    with patch('shutil.which', return_value='/usr/bin/pdftoppm'):
+        assert check_poppler() is True
+
+def test_check_poppler_not_found():
+    with patch('shutil.which', return_value=None):
+        assert check_poppler() is False
+
+def test_check_tesseract_found():
+    with patch('shutil.which', return_value='/usr/bin/tesseract'):
+        assert check_tesseract() is True
+
+def test_check_tesseract_not_found():
+    with patch('shutil.which', return_value=None):
+        assert check_tesseract() is False

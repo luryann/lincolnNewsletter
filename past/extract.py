@@ -9,6 +9,15 @@ from pdf2image import convert_from_path
 import pytesseract
 from pytesseract import Output
 
+
+def check_poppler() -> bool:
+    return shutil.which('pdftoppm') is not None
+
+
+def check_tesseract() -> bool:
+    return shutil.which('tesseract') is not None
+
+
 CONTENT_JSON = Path(__file__).parent.parent / 'content.json'
 
 SECTION_MAP = {
