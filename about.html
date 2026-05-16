@@ -62,127 +62,9 @@
   <main id="main-content">
     <div class="about-body">
 
-      <!-- Editorial Leadership -->
-      <div class="about-sec-head">Editorial Leadership</div>
-      <div class="staff-grid">
-        <div class="staff-card">
-          <div class="staff-card__avatar">MN</div>
-          <div class="staff-card__name">Megan Nim</div>
-          <div class="staff-card__role">Editor-in-Chief</div>
-          <div class="staff-card__beat">Lincoln News, Photography</div>
-        </div>
-        <div class="staff-card">
-          <div class="staff-card__avatar">ED</div>
-          <div class="staff-card__name">Elsa Daily</div>
-          <div class="staff-card__role">Editor-in-Chief</div>
-          <div class="staff-card__beat">Reviews, Features</div>
-        </div>
-        <div class="staff-card">
-          <div class="staff-card__avatar">SM</div>
-          <div class="staff-card__name">Sophia Miranda</div>
-          <div class="staff-card__role">Editor</div>
-          <div class="staff-card__beat">Features, Copy Editing</div>
-        </div>
-        <div class="staff-card">
-          <div class="staff-card__avatar" style="background:#DCDCE0;">MB</div>
-          <div class="staff-card__name">Mr. Brewer</div>
-          <div class="staff-card__role">Faculty Advisor</div>
-          <div class="staff-card__beat">Journalism &amp; Media</div>
-        </div>
-      </div>
-
-      <!-- Staff & Copy -->
-      <div class="about-sec-head" style="margin-top:36px;">Photo &amp; Copy</div>
-      <div class="staff-grid">
-        <div class="staff-card">
-          <div class="staff-card__avatar" style="background:#DCDCE0;">MS</div>
-          <div class="staff-card__name">Mr. Skramstad</div>
-          <div class="staff-card__role">Photo &amp; Copy Editor</div>
-          <div class="staff-card__beat">Photography, Layout</div>
-        </div>
-        <div class="staff-card">
-          <div class="staff-card__avatar">AR</div>
-          <div class="staff-card__name">Aracely Rodriguez</div>
-          <div class="staff-card__role">Staff Photographer</div>
-          <div class="staff-card__beat">Lincoln News</div>
-        </div>
-        <div class="staff-card">
-          <div class="staff-card__avatar">TN</div>
-          <div class="staff-card__name">Tiffany Nguyen</div>
-          <div class="staff-card__role">Staff Photographer</div>
-          <div class="staff-card__beat">Campus Life</div>
-        </div>
-        <div class="staff-card">
-          <div class="staff-card__avatar">JG</div>
-          <div class="staff-card__name">Jada Guevara</div>
-          <div class="staff-card__role">Staff Photographer</div>
-          <div class="staff-card__beat">Events &amp; News</div>
-        </div>
-      </div>
-
-      <!-- Writers -->
-      <div class="about-sec-head">Staff Writers</div>
-      <div class="writers-grid">
-        <div class="writer-item">
-          <span class="writer-item__name">Ryan Lu</span>
-          <span class="writer-item__section">Sports</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Aaron Ortiz</span>
-          <span class="writer-item__section">Sports</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Ruby Campos</span>
-          <span class="writer-item__section">Sports</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Qimei Li</span>
-          <span class="writer-item__section">Features</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Yew Yu</span>
-          <span class="writer-item__section">Features</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Miranda Garcia</span>
-          <span class="writer-item__section">Features</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Samantha Ortiz</span>
-          <span class="writer-item__section">Features</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Rebecca Medrano</span>
-          <span class="writer-item__section">Opinion</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Samantha Martinez</span>
-          <span class="writer-item__section">Opinion</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Alma Santiago</span>
-          <span class="writer-item__section">Opinion</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Elisas Munoz</span>
-          <span class="writer-item__section">Reviews</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Daniel Weng</span>
-          <span class="writer-item__section">Reviews</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Megan Nim</span>
-          <span class="writer-item__section">News</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Aracely Rodriguez</span>
-          <span class="writer-item__section">News</span>
-        </div>
-        <div class="writer-item">
-          <span class="writer-item__name">Jada Guevara</span>
-          <span class="writer-item__section">News</span>
-        </div>
+      <!-- Staff (loaded from content.json) -->
+      <div id="staffSection">
+        <p style="color:var(--c-muted);font-family:var(--f-sans);font-size:14px;">Loading staff&hellip;</p>
       </div>
 
       <!-- Editorial Policy -->
@@ -294,6 +176,50 @@
   </div>
 
   <script>
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function initials(name) {
+      return (name||'').split(' ').map(function(p){ return p[0]||''; }).join('').slice(0,2).toUpperCase();
+    }
+
+    function staffCardHTML(m) {
+      return '<div class="staff-card">' +
+        '<div class="staff-card__avatar">' + esc(initials(m.name)) + '</div>' +
+        '<div class="staff-card__name">' + esc(m.name) + '</div>' +
+        '<div class="staff-card__role">' + esc(m.role||'') + '</div>' +
+        (m.beat ? '<div class="staff-card__beat">' + esc(m.beat) + '</div>' : '') +
+      '</div>';
+    }
+
+    fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
+      var s = data.staff || {};
+      var lead    = s.leadership || [];
+      var photo   = s.photoCopy  || [];
+      var writers = s.writers    || [];
+
+      var html = '';
+      if (lead.length) {
+        html += '<div class="about-sec-head">Editorial Leadership</div>' +
+          '<div class="staff-grid">' + lead.map(staffCardHTML).join('') + '</div>';
+      }
+      if (photo.length) {
+        html += '<div class="about-sec-head" style="margin-top:36px;">Photo &amp; Copy</div>' +
+          '<div class="staff-grid">' + photo.map(staffCardHTML).join('') + '</div>';
+      }
+      if (writers.length) {
+        html += '<div class="about-sec-head">Staff Writers</div><div class="writers-grid">' +
+          writers.map(function(w) {
+            return '<div class="writer-item">' +
+              '<span class="writer-item__name">' + esc(w.name) + '</span>' +
+              '<span class="writer-item__section">' + esc(w.section||'') + '</span>' +
+            '</div>';
+          }).join('') + '</div>';
+      }
+      document.getElementById('staffSection').innerHTML = html || '<p style="color:var(--c-muted);font-size:14px;">No staff listed yet.</p>';
+    }).catch(function() {
+      document.getElementById('staffSection').innerHTML = '<p style="color:var(--c-muted);font-size:14px;">Run a local server to load staff.</p>';
+    });
+
     var btt = document.getElementById('backToTop');
     window.addEventListener('scroll', function() { btt.classList.toggle('visible', window.scrollY > 400); });
     btt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });

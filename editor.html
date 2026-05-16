@@ -124,6 +124,8 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
 .color-dot.selected{border-color:#1a1916;}
 /* ── Issues view ── */
 .issue-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0ede8;}
+.staff-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.staff-row input{flex:1;padding:6px 8px;border:1px solid #e0ddd8;border-radius:5px;font-size:13px;font-family:inherit;}
 .issue-row:last-child{border-bottom:none;}
 .issue-info{flex:1;}
 .issue-title{font-size:14px;font-weight:600;}
@@ -171,6 +173,10 @@ button{cursor:pointer;font-family:inherit;font-size:13px;}
       <button class="nav-item" data-view="issues">
         <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
         Issues
+      </button>
+      <button class="nav-item" data-view="staff">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 14.094A5.973 5.973 0 004 17v1H1v-1a3 3 0 013.75-2.906z"/></svg>
+        Staff
       </button>
       <div class="nav-label">System</div>
       <button class="nav-item" data-view="settings">
@@ -1126,6 +1132,7 @@ App.views.issues = {
         '<div class="issue-actions">' +
           '<button class="btn btn-secondary issue-print" data-id="' + App.esc(issue.id) + '" style="font-size:12px;">Print</button>' +
           '<button class="btn btn-secondary issue-edit" data-id="' + App.esc(issue.id) + '" style="font-size:12px;">Edit</button>' +
+          '<button class="btn btn-danger issue-delete" data-id="' + App.esc(issue.id) + '" style="font-size:12px;">Delete</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1143,6 +1150,23 @@ App.views.issues = {
       btn.addEventListener('click', function() {
         var issue = App.issueById(btn.dataset.id);
         if (issue) App.views.issues.openEditModal(issue);
+      });
+    });
+
+    document.querySelectorAll('.issue-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var issue = App.issueById(btn.dataset.id);
+        if (!issue) return;
+        var count = App.state.content.articles.filter(function(a){ return a.issueId === issue.id; }).length;
+        var msg = 'Delete "' + issue.title + '"?' + (count ? '\n\n' + count + ' article(s) will be unlinked from this issue (not deleted).' : '');
+        if (!confirm(msg)) return;
+        App.state.content.issues = App.state.content.issues.filter(function(i){ return i.id !== issue.id; });
+        App.state.content.articles.forEach(function(a){ if (a.issueId === issue.id) a.issueId = null; });
+        btn.disabled = true; btn.textContent = 'Deleting…';
+        App.github.saveContent('Issues: delete ' + issue.title).then(function() {
+          App.showSuccess('Issue deleted.');
+          App.views.issues.renderList();
+        }).catch(App.handleApiError);
       });
     });
   },
@@ -1258,6 +1282,129 @@ App.views.issues = {
         saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
         App.handleApiError(err);
       });
+    });
+  }
+};
+
+// ── Staff view ─────────────────────────────────────────────────────────────
+App.views.staff = {
+  render: function() {
+    document.getElementById('topbarTitle').textContent = 'Staff';
+    document.getElementById('topbarActions').innerHTML =
+      '<button class="btn btn-primary" id="saveStaffBtn">Save Changes</button>';
+    App.views.staff.renderContent();
+    document.getElementById('saveStaffBtn').addEventListener('click', function() {
+      App.views.staff.collectAndSave();
+    });
+  },
+
+  defaultStaff: function() {
+    return { leadership: [], photoCopy: [], writers: [] };
+  },
+
+  renderContent: function() {
+    var s = App.state.content.staff || App.views.staff.defaultStaff();
+    var lead    = s.leadership || [];
+    var photoCopy = s.photoCopy || [];
+    var writers = s.writers || [];
+
+    function memberRows(members, group) {
+      return members.map(function(m, i) {
+        return '<div class="staff-row" data-group="' + group + '" data-i="' + i + '">' +
+          '<input class="staff-f-name" type="text" placeholder="Name" value="' + App.esc(m.name || '') + '">' +
+          '<input class="staff-f-role" type="text" placeholder="Role / Title" value="' + App.esc(m.role || '') + '">' +
+          '<input class="staff-f-beat" type="text" placeholder="Beat / section" value="' + App.esc(m.beat || '') + '">' +
+          '<button class="btn btn-danger staff-remove" style="font-size:11px;padding:4px 8px;">✕</button>' +
+        '</div>';
+      }).join('') +
+      '<button class="btn btn-secondary staff-add-row" data-group="' + group + '" style="font-size:12px;margin-top:6px;">+ Add person</button>';
+    }
+
+    function writerRows(ws) {
+      return ws.map(function(w, i) {
+        return '<div class="staff-row" data-group="writers" data-i="' + i + '">' +
+          '<input class="staff-f-name" type="text" placeholder="Name" value="' + App.esc(w.name || '') + '" style="flex:2;">' +
+          '<input class="staff-f-beat" type="text" placeholder="Section" value="' + App.esc(w.section || '') + '" style="flex:1;">' +
+          '<button class="btn btn-danger staff-remove" style="font-size:11px;padding:4px 8px;">✕</button>' +
+        '</div>';
+      }).join('') +
+      '<button class="btn btn-secondary staff-add-row" data-group="writers" style="font-size:12px;margin-top:6px;">+ Add writer</button>';
+    }
+
+    document.getElementById('contentArea').innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:20px;">' +
+        '<div class="card"><div class="card-title">Editorial Leadership</div>' +
+          '<div style="font-size:12px;color:#888;margin-bottom:10px;">Editors-in-Chief, Editors, Faculty Advisor</div>' +
+          '<div id="staff-leadership">' + memberRows(lead, 'leadership') + '</div>' +
+        '</div>' +
+        '<div class="card"><div class="card-title">Photo &amp; Copy</div>' +
+          '<div id="staff-photoCopy">' + memberRows(photoCopy, 'photoCopy') + '</div>' +
+        '</div>' +
+        '<div class="card"><div class="card-title">Staff Writers</div>' +
+          '<div style="font-size:12px;color:#888;margin-bottom:10px;">Name + section only</div>' +
+          '<div id="staff-writers">' + writerRows(writers) + '</div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('contentArea').addEventListener('click', function(e) {
+      if (e.target.classList.contains('staff-remove')) {
+        e.target.closest('.staff-row').remove();
+      }
+      if (e.target.classList.contains('staff-add-row')) {
+        var group = e.target.dataset.group;
+        var row = document.createElement('div');
+        row.className = 'staff-row';
+        row.dataset.group = group;
+        if (group === 'writers') {
+          row.innerHTML =
+            '<input class="staff-f-name" type="text" placeholder="Name" style="flex:2;">' +
+            '<input class="staff-f-beat" type="text" placeholder="Section" style="flex:1;">' +
+            '<button class="btn btn-danger staff-remove" style="font-size:11px;padding:4px 8px;">✕</button>';
+        } else {
+          row.innerHTML =
+            '<input class="staff-f-name" type="text" placeholder="Name">' +
+            '<input class="staff-f-role" type="text" placeholder="Role / Title">' +
+            '<input class="staff-f-beat" type="text" placeholder="Beat / section">' +
+            '<button class="btn btn-danger staff-remove" style="font-size:11px;padding:4px 8px;">✕</button>';
+        }
+        e.target.before(row);
+      }
+    });
+  },
+
+  collectAndSave: function() {
+    function collectGroup(containerId, isWriter) {
+      var rows = document.querySelectorAll('#' + containerId + ' .staff-row');
+      var result = [];
+      rows.forEach(function(row) {
+        var name = (row.querySelector('.staff-f-name') || {}).value || '';
+        if (!name.trim()) return;
+        if (isWriter) {
+          result.push({ name: name.trim(), section: ((row.querySelector('.staff-f-beat') || {}).value || '').trim() });
+        } else {
+          result.push({
+            name: name.trim(),
+            role: ((row.querySelector('.staff-f-role') || {}).value || '').trim(),
+            beat: ((row.querySelector('.staff-f-beat') || {}).value || '').trim()
+          });
+        }
+      });
+      return result;
+    }
+
+    if (!App.state.content.staff) App.state.content.staff = {};
+    App.state.content.staff.leadership = collectGroup('staff-leadership', false);
+    App.state.content.staff.photoCopy  = collectGroup('staff-photoCopy', false);
+    App.state.content.staff.writers    = collectGroup('staff-writers', true);
+
+    var btn = document.getElementById('saveStaffBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    App.github.saveContent('Staff: update staff list').then(function() {
+      App.showSuccess('Staff saved.');
+      btn.disabled = false; btn.textContent = 'Save Changes';
+    }).catch(function(err) {
+      btn.disabled = false; btn.textContent = 'Save Changes';
+      App.handleApiError(err);
     });
   }
 };

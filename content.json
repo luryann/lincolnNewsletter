@@ -38,5 +38,113 @@
       "sports": [],
       "reviews": []
     }
+  },
+  "staff": {
+    "leadership": [
+      {
+        "name": "Megan Nim",
+        "role": "Editor-in-Chief",
+        "beat": "Lincoln News, Photography"
+      },
+      {
+        "name": "Elsa Daily",
+        "role": "Editor-in-Chief",
+        "beat": "Reviews, Features"
+      },
+      {
+        "name": "Sophia Miranda",
+        "role": "Editor",
+        "beat": "Features, Copy Editing"
+      },
+      {
+        "name": "Mr. Brewer",
+        "role": "Faculty Advisor",
+        "beat": "Journalism & Media"
+      }
+    ],
+    "photoCopy": [
+      {
+        "name": "Mr. Skramstad",
+        "role": "Photo & Copy Editor",
+        "beat": "Photography, Layout"
+      },
+      {
+        "name": "Aracely Rodriguez",
+        "role": "Staff Photographer",
+        "beat": "Lincoln News"
+      },
+      {
+        "name": "Tiffany Nguyen",
+        "role": "Staff Photographer",
+        "beat": "Campus Life"
+      },
+      {
+        "name": "Jada Guevara",
+        "role": "Staff Photographer",
+        "beat": "Events & News"
+      }
+    ],
+    "writers": [
+      {
+        "name": "Ryan Lu",
+        "section": "Sports"
+      },
+      {
+        "name": "Aaron Ortiz",
+        "section": "Sports"
+      },
+      {
+        "name": "Ruby Campos",
+        "section": "Sports"
+      },
+      {
+        "name": "Qimei Li",
+        "section": "Features"
+      },
+      {
+        "name": "Yew Yu",
+        "section": "Features"
+      },
+      {
+        "name": "Miranda Garcia",
+        "section": "Features"
+      },
+      {
+        "name": "Samantha Ortiz",
+        "section": "Features"
+      },
+      {
+        "name": "Rebecca Medrano",
+        "section": "Opinion"
+      },
+      {
+        "name": "Samantha Martinez",
+        "section": "Opinion"
+      },
+      {
+        "name": "Alma Santiago",
+        "section": "Opinion"
+      },
+      {
+        "name": "Elisas Munoz",
+        "section": "Reviews"
+      },
+      {
+        "name": "Daniel Weng",
+        "section": "Reviews"
+      },
+      {
+        "name": "Megan Nim",
+        "section": "News"
+      },
+      {
+        "name": "Aracely Rodriguez",
+        "section": "News"
+      },
+      {
+        "name": "Jada Guevara",
+        "section": "News"
+      }
+    ]
   }
 }
