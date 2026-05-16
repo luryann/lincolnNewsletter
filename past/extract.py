@@ -60,9 +60,29 @@ def is_known_section(text: str) -> bool:
 
 
 _ISSUE_RE = re.compile(
-    r'[Ii]ssue\s+(\d+)\s*[,|]\s*([A-Za-z]+\s+\d{4})',
+    r'[Ii]ssue\s+#?(\d+)\s*(?:[,|]\s*|\s+)([A-Za-z]+\s+\d{4})',
     re.IGNORECASE,
 )
+
+_FNAME_ISSUE_RE = re.compile(r'Issue(\d+)([A-Za-z]+)?(\d{4})', re.IGNORECASE)
+_FNAME_YEAR_ISSUE_RE = re.compile(r'(\d{4}).*?Issue(\d+)', re.IGNORECASE)
+
+
+def parse_issue_from_filename(stem: str) -> dict | None:
+    m = _FNAME_ISSUE_RE.search(stem)
+    if m and int(m.group(1)) <= 20:
+        number = m.group(1)
+        season = (m.group(2) or '').strip()
+        year = m.group(3)
+        date_str = f'{season} {year}'.strip() if season else year
+        return {'number': number, 'date': date_str, 'id': f'issue-{number}', 'title': f'Issue {number}'}
+
+    m = _FNAME_YEAR_ISSUE_RE.search(stem)
+    if m and int(m.group(2)) <= 20:
+        year, number = m.group(1), m.group(2)
+        return {'number': number, 'date': year, 'id': f'issue-{number}', 'title': f'Issue {number}'}
+
+    return None
 
 
 def parse_issue_info(text: str) -> dict | None:
@@ -306,6 +326,9 @@ def process_pdf(pdf_path: Path) -> dict:
 
         page_articles = segment_articles(classified)
         all_raw_articles.extend(page_articles)
+
+    if issue_info is None:
+        issue_info = parse_issue_from_filename(pdf_path.stem)
 
     issue_str = f"{issue_info['title']}, {issue_info['date']}" if issue_info else 'Unknown Issue'
     issue_id = issue_info['id'] if issue_info else 'issue-unknown'
