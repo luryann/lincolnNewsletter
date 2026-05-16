@@ -199,3 +199,33 @@ def segment_articles(classified_blocks: list[dict]) -> list[dict]:
         articles.append(current)
 
     return articles
+
+
+def build_article(raw: dict, issue_str: str, issue_id: str) -> tuple[dict, float]:
+    """Converts raw article dict to content.json shape.
+    Returns (article_dict, avg_conf).
+    """
+    all_confs = [raw['headline_conf']] + raw['body_confs']
+    avg_conf = sum(all_confs) / len(all_confs) if all_confs else 0.0
+
+    dek = raw['dek'] if raw['dek'] and raw['dek_conf'] >= 70 else ''
+    body = ''
+    if avg_conf >= 60 and raw['body_texts']:
+        body = ''.join(f'<p>{t}</p>' for t in raw['body_texts'])
+
+    section = raw['section']
+    article = {
+        'id': slugify(raw['headline']),
+        'title': raw['headline'],
+        'author': raw['byline'] or 'The Railsplitter',
+        'section': section,
+        'issue': issue_str,
+        'issueId': issue_id,
+        'dek': dek,
+        'body': body,
+        'ph': f'img-ph--{section}',
+        'credit': '',
+        'photo': None,
+        'published': avg_conf >= 60,
+    }
+    return article, avg_conf

@@ -253,3 +253,74 @@ def test_segment_propagates_section_banner():
 
 def test_segment_empty_returns_empty():
     assert segment_articles([]) == []
+
+from extract import build_article
+
+def _raw_article(**overrides):
+    base = {
+        'headline': 'Tiger Baseball Wins Big',
+        'headline_conf': 85.0,
+        'dek': 'Lincoln crushed the Falcons 9-1.',
+        'dek_conf': 80.0,
+        'byline': 'Ryan Lu',
+        'body_texts': ['First paragraph.', 'Second paragraph.'],
+        'body_confs': [82.0, 78.0],
+        'section': 'sports',
+    }
+    base.update(overrides)
+    return base
+
+def test_build_article_id_is_slugified():
+    article, _ = build_article(_raw_article(), 'Issue 6, April 2026', 'issue-6')
+    assert article['id'] == 'tiger-baseball-wins-big'
+
+def test_build_article_fields():
+    article, _ = build_article(_raw_article(), 'Issue 6, April 2026', 'issue-6')
+    assert article['title'] == 'Tiger Baseball Wins Big'
+    assert article['author'] == 'Ryan Lu'
+    assert article['section'] == 'sports'
+    assert article['issue'] == 'Issue 6, April 2026'
+    assert article['issueId'] == 'issue-6'
+    assert article['ph'] == 'img-ph--sports'
+    assert article['credit'] == ''
+    assert article['photo'] is None
+
+def test_build_article_body_wrapped_in_p_tags():
+    article, _ = build_article(_raw_article(), 'Issue 6, April 2026', 'issue-6')
+    assert article['body'] == '<p>First paragraph.</p><p>Second paragraph.</p>'
+
+def test_build_article_published_true_when_conf_high():
+    article, _ = build_article(_raw_article(), 'Issue 6, April 2026', 'issue-6')
+    assert article['published'] is True
+
+def test_build_article_published_false_when_conf_low():
+    raw = _raw_article(headline_conf=40.0, body_confs=[35.0, 30.0])
+    article, avg_conf = build_article(raw, 'Issue 3, Dec 2025', 'issue-3')
+    assert article['published'] is False
+    assert avg_conf < 60
+
+def test_build_article_dek_omitted_when_conf_below_70():
+    raw = _raw_article(dek='A dek.', dek_conf=65.0)
+    article, _ = build_article(raw, 'Issue 6, April 2026', 'issue-6')
+    assert article['dek'] == ''
+
+def test_build_article_dek_included_when_conf_70_or_above():
+    raw = _raw_article(dek='A dek.', dek_conf=70.0)
+    article, _ = build_article(raw, 'Issue 6, April 2026', 'issue-6')
+    assert article['dek'] == 'A dek.'
+
+def test_build_article_body_empty_when_conf_below_60():
+    raw = _raw_article(headline_conf=45.0, body_confs=[40.0])
+    article, _ = build_article(raw, 'Issue 3, Dec 2025', 'issue-3')
+    assert article['body'] == ''
+
+def test_build_article_no_byline_defaults_to_railsplitter():
+    raw = _raw_article(byline='')
+    article, _ = build_article(raw, 'Issue 6, April 2026', 'issue-6')
+    assert article['author'] == 'The Railsplitter'
+
+def test_build_article_returns_avg_conf():
+    # headline_conf=85, body_confs=[82, 78] → avg = (85+82+78)/3 = 81.67
+    raw = _raw_article(headline_conf=85.0, body_confs=[82.0, 78.0])
+    _, avg_conf = build_article(raw, 'Issue 6, April 2026', 'issue-6')
+    assert abs(avg_conf - 81.67) < 0.1
