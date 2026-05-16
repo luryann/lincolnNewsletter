@@ -137,6 +137,15 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    function imgOrPh(a, phClass, style) {
+      if (a.photo) {
+        return '<img src="' + esc(a.photo) + '" alt="" style="width:100%;' + style + 'object-fit:cover;display:block;">' +
+          (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '');
+      }
+      return '<div class="img-ph ' + esc(a.ph || phClass) + '" style="' + style + '">' +
+        (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') + '</div>';
+    }
+
     fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
       var articles = (data.articles || []).filter(function(a){ return a.published !== false && a.section === slug; });
       var issues = data.issues || [];
@@ -174,9 +183,7 @@
       // Featured
       document.getElementById('secFeatured').innerHTML =
         '<a href="article.html?id=' + esc(f.id) + '" class="sec-featured__img">' +
-          '<div class="img-ph ' + esc(ph) + '" style="aspect-ratio:4/3;">' +
-            (f.credit ? '<span class="img-ph__credit">' + esc(f.credit) + '</span>' : '') +
-          '</div>' +
+          imgOrPh(f, ph, 'aspect-ratio:4/3;') +
         '</a>' +
         '<div class="sec-featured__body">' +
           '<span class="label">' + esc(secTitle) + '</span>' +
@@ -192,9 +199,7 @@
         html +=
           '<article class="card">' +
             '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
-              '<div class="img-ph ' + esc(ph) + '" style="aspect-ratio:3/2;">' +
-                (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
-              '</div>' +
+              imgOrPh(a, ph, 'aspect-ratio:3/2;') +
             '</a>' +
             '<span class="label">' + esc(secTitle) + '</span>' +
             '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +

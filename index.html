@@ -167,6 +167,15 @@
     function st(slug) { return SECTION_TITLES[slug] || slug; }
     function ph(slug) { return 'img-ph--' + slug; }
 
+    function imgOrPh(a, style) {
+      if (a.photo) {
+        return '<img src="' + esc(a.photo) + '" alt="" style="width:100%;' + style + 'object-fit:cover;display:block;">' +
+          (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '');
+      }
+      return '<div class="img-ph ' + esc(a.ph || ph(a.section)) + '" style="' + style + '">' +
+        (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') + '</div>';
+    }
+
     fetch('content.json').then(function(r){ return r.json(); }).then(function(data) {
       var articles = (data.articles || []).filter(function(a){ return a.published !== false; });
       var hp = data.homepage || {};
@@ -193,9 +202,7 @@
             '<span class="label">' + esc(st(ha.section)) + '</span>' +
             '<div class="hero__img">' +
               '<a href="article.html?id=' + esc(ha.id) + '">' +
-                '<div class="img-ph ' + esc(ph(ha.section)) + '" style="height:100%;min-height:300px;">' +
-                  (ha.credit ? '<span class="img-ph__credit">' + esc(ha.credit) + '</span>' : '') +
-                '</div>' +
+                imgOrPh(ha, 'height:100%;min-height:300px;') +
               '</a>' +
             '</div>' +
             '<h2 class="hero__headline"><a href="article.html?id=' + esc(ha.id) + '">' + esc(ha.title) + '</a></h2>' +
@@ -244,9 +251,7 @@
           previewHTML +=
             '<article class="card">' +
               '<a href="article.html?id=' + esc(a.id) + '" class="card__img">' +
-                '<div class="img-ph ' + esc(ph(a.section)) + '" style="aspect-ratio:3/2;">' +
-                  (a.credit ? '<span class="img-ph__credit">' + esc(a.credit) + '</span>' : '') +
-                '</div>' +
+                imgOrPh(a, 'aspect-ratio:3/2;') +
               '</a>' +
               '<span class="label">' + esc(st(slug)) + '</span>' +
               '<h3 class="card__hed"><a href="article.html?id=' + esc(a.id) + '">' + esc(a.title) + '</a></h3>' +

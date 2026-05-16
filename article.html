@@ -232,15 +232,21 @@
       if (article.issue) document.getElementById('artIssue').textContent = article.issue;
 
       // Lead image
-      if (article.credit || article.ph) {
+      if (article.photo || article.credit || article.ph) {
         var leadImg = document.getElementById('artLeadImg');
-        var leadPh  = document.getElementById('artLeadPh');
-        leadPh.className = 'img-ph ' + (article.ph || ph);
-        if (article.credit) {
-          var creditSpan = document.createElement('span');
-          creditSpan.className = 'img-ph__credit';
-          creditSpan.textContent = article.credit;
-          leadPh.appendChild(creditSpan);
+        if (article.photo) {
+          leadImg.innerHTML =
+            '<img src="' + esc(article.photo) + '" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">' +
+            (article.credit ? '<p class="art-caption">' + esc(article.credit) + '</p>' : '');
+        } else {
+          var leadPh = document.getElementById('artLeadPh');
+          leadPh.className = 'img-ph ' + (article.ph || ph);
+          if (article.credit) {
+            var creditSpan = document.createElement('span');
+            creditSpan.className = 'img-ph__credit';
+            creditSpan.textContent = article.credit;
+            leadPh.appendChild(creditSpan);
+          }
         }
         leadImg.style.display = '';
       }
