@@ -98,3 +98,74 @@ def test_parse_issue_info_id_format():
     result = parse_issue_info("Issue 12, May 2025")
     assert result['id'] == 'issue-12'
     assert result['title'] == 'Issue 12'
+
+# cluster_into_blocks
+
+from extract import cluster_into_blocks
+
+def _make_ocr(words):
+    """words: list of (text, block_num, left, top, width, height, conf)"""
+    data = {k: [] for k in ('level','block_num','par_num','line_num',
+                             'word_num','left','top','width','height','conf','text','page_num')}
+    for text, block_num, left, top, width, height, conf in words:
+        data['level'].append(5)
+        data['block_num'].append(block_num)
+        data['par_num'].append(1)
+        data['line_num'].append(1)
+        data['word_num'].append(1)
+        data['left'].append(left)
+        data['top'].append(top)
+        data['width'].append(width)
+        data['height'].append(height)
+        data['conf'].append(conf)
+        data['text'].append(text)
+        data['page_num'].append(1)
+    return data
+
+def test_cluster_groups_by_block_num():
+    data = _make_ocr([
+        ('Hello', 1, 10, 10, 50, 20, 90),
+        ('World', 1, 70, 10, 50, 20, 85),
+        ('Other', 2, 10, 100, 50, 20, 80),
+    ])
+    blocks = cluster_into_blocks(data)
+    assert len(blocks) == 2
+    assert 'Hello World' in blocks[0]['text']
+    assert 'Other' in blocks[1]['text']
+
+def test_cluster_skips_empty_text():
+    data = _make_ocr([
+        ('', 1, 10, 10, 50, 20, 90),
+        ('Hello', 1, 70, 10, 50, 20, 85),
+    ])
+    blocks = cluster_into_blocks(data)
+    assert len(blocks) == 1
+
+def test_cluster_skips_negative_confidence():
+    data = _make_ocr([
+        ('Ghost', 1, 10, 10, 50, 20, -1),
+        ('Real', 1, 70, 10, 50, 20, 80),
+    ])
+    blocks = cluster_into_blocks(data)
+    assert 'Ghost' not in blocks[0]['text']
+
+def test_cluster_computes_avg_word_height():
+    data = _make_ocr([
+        ('Big', 1, 10, 10, 50, 60, 90),
+        ('text', 1, 70, 10, 50, 40, 90),
+    ])
+    blocks = cluster_into_blocks(data)
+    assert blocks[0]['avg_word_height'] == 50.0
+
+def test_cluster_sorted_by_top():
+    data = _make_ocr([
+        ('Lower', 2, 10, 200, 50, 20, 90),
+        ('Upper', 1, 10, 10, 50, 20, 90),
+    ])
+    blocks = cluster_into_blocks(data)
+    assert blocks[0]['text'] == 'Upper'
+    assert blocks[1]['text'] == 'Lower'
+
+def test_cluster_empty_data_returns_empty():
+    data = _make_ocr([])
+    assert cluster_into_blocks(data) == []
